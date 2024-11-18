@@ -98,11 +98,11 @@ INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('4 ÐºÐ
 -- +goose StatementBegin
 SELECT 'down SQL query';
 -- +goose StatementEnd
-DROP TABLE IF EXISTS public.faculties;
+DROP TABLE IF EXISTS public.schedule;
+DROP TABLE IF EXISTS public.members;
+DROP TABLE IF EXISTS public.groups;
+DROP TABLE IF EXISTS public.users;
 DROP TABLE IF EXISTS public.programs;
 DROP TABLE IF EXISTS public.type_of_subject;
 DROP TABLE IF EXISTS public.buildings;
-DROP TABLE IF EXISTS public.users;
-DROP TABLE IF EXISTS public.groups;
-DROP TABLE IF EXISTS public.members;
-DROP TABLE IF EXISTS public.schedule;
+DROP TABLE IF EXISTS public.faculties;
