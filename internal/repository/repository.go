@@ -3,17 +3,19 @@ package repository
 import "github.com/jackc/pgx/v5/pgxpool"
 
 type Repositories struct {
-	User   *UserRepository
-	Group  *GroupRepository
-	Edu    *EduRepository
-	Member *MemberRepository
+	User     *UserRepository
+	Group    *GroupRepository
+	Edu      *EduRepository
+	Member   *MemberRepository
+	Schedule *ScheduleRepository
 }
 
 func NewRepositories(pool *pgxpool.Pool) *Repositories {
 	return &Repositories{
-		User:   NewUserRepository(pool),
-		Group:  NewGroupRepository(pool),
-		Edu:    NewEduRepository(pool),
-		Member: NewMemberRepository(pool),
+		User:     NewUserRepository(pool),
+		Group:    NewGroupRepository(pool),
+		Edu:      NewEduRepository(pool),
+		Member:   NewMemberRepository(pool),
+		Schedule: NewScheduleRepository(pool),
 	}
 }

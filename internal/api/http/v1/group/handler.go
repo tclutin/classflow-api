@@ -35,7 +35,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 		groupsGroup.GET("", h.GetAllGroupsSummary)
 		groupsGroup.GET("/my", h.GetGroupForCurrentUser)
 		groupsGroup.POST("/:group_id/join", middleware.RoleMiddleware("student"), h.JoinToGroup)
-		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware("leader"), nil)
+		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware("leader"), h.UploadSchedule)
 	}
 }
 
@@ -132,6 +132,10 @@ func (h *Handler) JoinToGroup(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func (h *Handler) UploadSchedule(c *gin.Context) {
+	panic("")
 }
 
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {

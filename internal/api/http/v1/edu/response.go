@@ -13,6 +13,11 @@ type ProgramResponse struct {
 	Name      string `json:"name"`
 }
 
+type TypeOfSubjectResponse struct {
+	TypeOfSubjectID uint64 `json:"type_of_subject_id"`
+	Name            string `json:"name"`
+}
+
 func EntitiesToFacultiesResponse(entities []edu.Faculty) []FacultyResponse {
 	var faculties []FacultyResponse
 
@@ -40,4 +45,18 @@ func EntitiesToProgramsResponse(entities []edu.Program) []ProgramResponse {
 	}
 
 	return faculties
+}
+
+func EntitiesToTypesOfSubjectResponse(entities []edu.TypeOfSubject) []TypeOfSubjectResponse {
+	var typeOfSubjects []TypeOfSubjectResponse
+	for _, entity := range entities {
+		faculty := TypeOfSubjectResponse{
+			TypeOfSubjectID: entity.TypeOfSubjectID,
+			Name:            entity.Name,
+		}
+
+		typeOfSubjects = append(typeOfSubjects, faculty)
+	}
+
+	return typeOfSubjects
 }

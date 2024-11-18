@@ -60,6 +60,28 @@ func (f *EduRepository) GetAllFaculty(ctx context.Context) ([]edu.Faculty, error
 	return faculties, nil
 }
 
+func (f *EduRepository) GetAllTypesOfSubject(ctx context.Context) ([]edu.TypeOfSubject, error) {
+	sql := `SELECT * FROM public.type_of_subject`
+
+	rows, err := f.pool.Query(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	var typesOfSubject []edu.TypeOfSubject
+
+	for rows.Next() {
+		var typeOfSubject edu.TypeOfSubject
+		if err = rows.Scan(&typeOfSubject.TypeOfSubjectID, &typeOfSubject.Name); err != nil {
+			return nil, err
+		}
+
+		typesOfSubject = append(typesOfSubject, typeOfSubject)
+	}
+
+	return typesOfSubject, nil
+}
+
 func (f *EduRepository) GetFacultyById(ctx context.Context, facultyID uint64) (edu.Faculty, error) {
 	sql := `SELECT * FROM public.faculties WHERE faculty_id = $1`
 

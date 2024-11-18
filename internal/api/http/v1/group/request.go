@@ -9,3 +9,5 @@ type CreateGroupRequest struct {
 type JoinToGroupRequest struct {
 	Code string `json:"code" binding:"required,max=10"`
 }
+
+type UploadScheduleRequest struct{}

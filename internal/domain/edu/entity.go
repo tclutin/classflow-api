@@ -10,3 +10,8 @@ type Program struct {
 	FacultyID uint64
 	Name      string
 }
+
+type TypeOfSubject struct {
+	TypeOfSubjectID uint64
+	Name            string
+}

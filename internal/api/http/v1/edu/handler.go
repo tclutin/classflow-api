@@ -11,6 +11,7 @@ import (
 type Service interface {
 	GetAllFaculties(ctx context.Context) ([]edu.Faculty, error)
 	GetAllProgramsByFacultyId(ctx context.Context, facultyID uint64) ([]edu.Program, error)
+	GetAllTypesOfSubject(ctx context.Context) ([]edu.TypeOfSubject, error)
 }
 
 type Handler struct {
@@ -24,9 +25,20 @@ func NewHandler(service Service) *Handler {
 func (h *Handler) Bind(router *gin.RouterGroup) {
 	eduGroup := router.Group("/edu")
 	{
+		eduGroup.GET("/types_of_subject", h.GetAllTypesOfSubject)
 		eduGroup.GET("/faculties", h.GetAllFaculties)
 		eduGroup.GET("/faculties/:faculty_id/programs", h.GetProgramsByFacultyId)
 	}
+}
+
+func (h *Handler) GetAllTypesOfSubject(c *gin.Context) {
+	types, err := h.service.GetAllTypesOfSubject(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, EntitiesToTypesOfSubjectResponse(types))
 }
 
 func (h *Handler) GetAllFaculties(c *gin.Context) {

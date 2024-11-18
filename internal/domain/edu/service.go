@@ -11,6 +11,7 @@ import (
 type Repository interface {
 	GetAllFaculty(ctx context.Context) ([]Faculty, error)
 	GetAllProgramsByFacultyId(ctx context.Context, facultyID uint64) ([]Program, error)
+	GetAllTypesOfSubject(ctx context.Context) ([]TypeOfSubject, error)
 	GetProgramById(ctx context.Context, programID uint64) (Program, error)
 	GetFacultyById(ctx context.Context, facultyID uint64) (Faculty, error)
 }
@@ -21,6 +22,10 @@ type Service struct {
 
 func NewService(repo Repository) *Service {
 	return &Service{repo}
+}
+
+func (s *Service) GetAllTypesOfSubject(ctx context.Context) ([]TypeOfSubject, error) {
+	return s.repo.GetAllTypesOfSubject(ctx)
 }
 
 func (s *Service) GetAllFaculties(ctx context.Context) ([]Faculty, error) {
