@@ -20,6 +20,7 @@ type TypeOfSubjectResponse struct {
 
 type BuildingResponse struct {
 	BuildingID uint64  `json:"building_id"`
+	Name       string  `json:"name"`
 	Latitude   float64 `json:"latitude"`
 	Longitude  float64 `json:"longitude"`
 	Address    string  `json:"address"`
@@ -73,6 +74,7 @@ func EntitiesToBuildingsResponse(entities []edu.Building) []BuildingResponse {
 	for _, entity := range entities {
 		faculty := BuildingResponse{
 			BuildingID: entity.BuildingID,
+			Name:       entity.Name,
 			Latitude:   entity.Latitude,
 			Longitude:  entity.Longitude,
 			Address:    entity.Address,

@@ -83,6 +83,20 @@ func (f *EduRepository) GetAllBuildings(ctx context.Context) ([]edu.Building, er
 	return buildings, nil
 }
 
+func (f *EduRepository) GetBuildingById(ctx context.Context, buildingID uint64) (edu.Building, error) {
+	sql := `SELECT * FROM public.buildings WHERE buildings_id = $1`
+
+	row := f.pool.QueryRow(ctx, sql, buildingID)
+
+	var building edu.Building
+
+	if err := row.Scan(&building.BuildingID, &building.Name, &building.Latitude, &building.Longitude, &building.Address); err != nil {
+		return building, err
+	}
+
+	return building, nil
+}
+
 func (f *EduRepository) GetAllTypesOfSubject(ctx context.Context) ([]edu.TypeOfSubject, error) {
 	sql := `SELECT * FROM public.type_of_subject`
 
