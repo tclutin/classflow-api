@@ -90,8 +90,10 @@ INSERT INTO public.type_of_subject (name) VALUES ('Практика');
 INSERT INTO public.type_of_subject (name) VALUES ('Лабораторная работа');
 INSERT INTO public.type_of_subject (name) VALUES ('Другое');
 
-INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('1 корпус', 33.3, 33.3, 'хуй знает');
-
+INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('1 корпус', 33.3, 33.3, 'ул. Братьев Кашириных, 129, Челябинск');
+INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('2 корпус', 33.3, 33.3, 'ул. Молодогвардейцев, 70Б, Челябинск');
+INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('3 корпус', 33.3, 33.3, 'ул. проспект Победы, 162В, Челябинск');
+INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('4 корпус', 33.3, 33.3, 'ул. Молодогвардейцев, 57А, Челябинск');
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';
