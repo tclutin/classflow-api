@@ -15,3 +15,11 @@ type TypeOfSubject struct {
 	TypeOfSubjectID uint64
 	Name            string
 }
+
+type Building struct {
+	BuildingID uint64
+	Name       string
+	Latitude   float64
+	Longitude  float64
+	Address    string
+}

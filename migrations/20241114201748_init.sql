@@ -92,8 +92,9 @@ INSERT INTO public.type_of_subject (name) VALUES ('Другое');
 
 INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('1 корпус', 55.177292, 61.319480, 'ул. Братьев Кашириных, 129, Челябинск');
 INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('2 корпус', 55.180179, 61.328064, 'ул. Молодогвардейцев, 70Б, Челябинск');
-INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('3 корпус', 55.187305, 61.403047, 'ул. проспект Победы, 162В, Челябинск');
+INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('3 корпус', 55.187305, 61.403047, 'ул. Проспект Победы, 162В, Челябинск');
 INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('4 корпус', 55.180200, 61.335155, 'ул. Молодогвардейцев, 57А, Челябинск');
+
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';

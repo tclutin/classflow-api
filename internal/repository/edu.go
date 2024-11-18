@@ -60,6 +60,29 @@ func (f *EduRepository) GetAllFaculty(ctx context.Context) ([]edu.Faculty, error
 	return faculties, nil
 }
 
+func (f *EduRepository) GetAllBuildings(ctx context.Context) ([]edu.Building, error) {
+	sql := `SELECT * FROM public.buildings`
+
+	rows, err := f.pool.Query(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var buildings []edu.Building
+
+	for rows.Next() {
+		var building edu.Building
+		if err = rows.Scan(&building.BuildingID, &building.Name, &building.Latitude, &building.Longitude, &building.Address); err != nil {
+			return nil, err
+		}
+
+		buildings = append(buildings, building)
+	}
+
+	return buildings, nil
+}
+
 func (f *EduRepository) GetAllTypesOfSubject(ctx context.Context) ([]edu.TypeOfSubject, error) {
 	sql := `SELECT * FROM public.type_of_subject`
 
@@ -67,6 +90,7 @@ func (f *EduRepository) GetAllTypesOfSubject(ctx context.Context) ([]edu.TypeOfS
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var typesOfSubject []edu.TypeOfSubject
 
@@ -80,6 +104,21 @@ func (f *EduRepository) GetAllTypesOfSubject(ctx context.Context) ([]edu.TypeOfS
 	}
 
 	return typesOfSubject, nil
+}
+
+func (f *EduRepository) GetTypeOfSubjectById(ctx context.Context, typeOfSubjectId uint64) (edu.TypeOfSubject, error) {
+	sql := `SELECT * FROM public.type_of_subject WHERE type_of_subject_id = $1`
+
+	row := f.pool.QueryRow(ctx, sql, typeOfSubjectId)
+
+	var typeOfSubject edu.TypeOfSubject
+
+	err := row.Scan(&typeOfSubject.TypeOfSubjectID, &typeOfSubject.Name)
+	if err != nil {
+		return edu.TypeOfSubject{}, err
+	}
+
+	return typeOfSubject, nil
 }
 
 func (f *EduRepository) GetFacultyById(ctx context.Context, facultyID uint64) (edu.Faculty, error) {

@@ -18,6 +18,9 @@ var (
 	// ErrFacultyNotFound EduService
 	ErrFacultyNotFound = errors.New("faculty not found")
 
+	// ErrTypeOfSubjectNotFound EduService
+	ErrTypeOfSubjectNotFound = errors.New("type of subject not found")
+
 	// ErrGroupNotFound GroupService
 	ErrGroupNotFound = errors.New("group not found")
 

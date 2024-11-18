@@ -18,6 +18,13 @@ type TypeOfSubjectResponse struct {
 	Name            string `json:"name"`
 }
 
+type BuildingResponse struct {
+	BuildingID uint64  `json:"building_id"`
+	Latitude   float64 `json:"latitude"`
+	Longitude  float64 `json:"longitude"`
+	Address    string  `json:"address"`
+}
+
 func EntitiesToFacultiesResponse(entities []edu.Faculty) []FacultyResponse {
 	var faculties []FacultyResponse
 
@@ -59,4 +66,20 @@ func EntitiesToTypesOfSubjectResponse(entities []edu.TypeOfSubject) []TypeOfSubj
 	}
 
 	return typeOfSubjects
+}
+
+func EntitiesToBuildingsResponse(entities []edu.Building) []BuildingResponse {
+	var buildings []BuildingResponse
+	for _, entity := range entities {
+		faculty := BuildingResponse{
+			BuildingID: entity.BuildingID,
+			Latitude:   entity.Latitude,
+			Longitude:  entity.Longitude,
+			Address:    entity.Address,
+		}
+
+		buildings = append(buildings, faculty)
+	}
+
+	return buildings
 }
