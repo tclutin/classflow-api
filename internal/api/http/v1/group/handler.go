@@ -3,6 +3,7 @@ package group
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tclutin/classflow-api/internal/api/http/middleware"
 	"github.com/tclutin/classflow-api/internal/domain/auth"
@@ -14,10 +15,11 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, dto group.CreateGroupDTO) (uint64, error)
-	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
 	GetStudentGroupByUserId(ctx context.Context, userID uint64) (group.SummaryGroupDTO, error)
 	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]group.DetailsGroupDTO, error)
 	GetAllGroupsSummary(ctx context.Context) ([]group.SummaryGroupDTO, error)
+	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
+	UploadSchedule(ctx context.Context, userID, groupID uint64) error
 }
 
 type Handler struct {
@@ -135,7 +137,35 @@ func (h *Handler) JoinToGroup(c *gin.Context) {
 }
 
 func (h *Handler) UploadSchedule(c *gin.Context) {
-	panic("")
+	var request UploadScheduleRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Println(request)
+
+	groupID, err := strconv.ParseUint(c.Param("group_id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, ok := c.Get("userID")
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "wtf"})
+		return
+	}
+
+	err = h.service.UploadSchedule(c.Request.Context(), groupID, userID.(uint64))
+	if err != nil {
+		// TODO: Handlers errors
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "wtf"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {

@@ -37,6 +37,11 @@ type Service struct {
 	repo       Repository
 }
 
+func (s *Service) UploadSchedule(ctx context.Context, userID, groupID uint64) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewService(repository Repository, memberRepo MemberRepository, eduService EduService) *Service {
 	return &Service{
 		repo:       repository,
