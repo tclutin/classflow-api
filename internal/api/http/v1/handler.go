@@ -27,7 +27,7 @@ func NewHandler(services *domain.Services) *Handler {
 // @Router       /signup [post]
 
 func (h *Handler) InitAPI(router *gin.RouterGroup) {
-	apiGroup := router.Group("/api")
+	apiGroup := router.Group("/v1")
 	{
 		auth.NewHandler(h.services.Auth).Bind(apiGroup, h.services.Auth)
 		group.NewHandler(h.services.Group).Bind(apiGroup, h.services.Auth)

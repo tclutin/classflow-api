@@ -22,7 +22,7 @@ func NewRouter(services *domain.Services) *gin.Engine {
 		c.Status(http.StatusOK)
 	})
 
-	root := router.Group("/v1")
+	root := router.Group("/api")
 	{
 		v1.NewHandler(services).InitAPI(root)
 	}
