@@ -207,6 +207,11 @@ func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
 
 	schedules, err := h.service.GetAllSchedulesByGroupIdAndUserId(c.Request.Context(), groupID, userID.(uint64))
 	if err != nil {
+		if errors.Is(err, domainErr.ErrYouArentMember) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
