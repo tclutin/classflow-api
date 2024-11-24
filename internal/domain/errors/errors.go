@@ -47,4 +47,7 @@ var (
 
 	//ErrYouArentMember GroupService
 	ErrYouArentMember = errors.New("you are not a member of this group")
+
+	//ErrMemberNotFound GroupService
+	ErrMemberNotFound = errors.New("member not found")
 )

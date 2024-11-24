@@ -19,6 +19,7 @@ type Service interface {
 	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]group.DetailsGroupDTO, error)
 	GetAllGroupsSummary(ctx context.Context) ([]group.SummaryGroupDTO, error)
 	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
+	LeaveFromGroup(ctx context.Context, userID uint64) error
 	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
 	GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID, userID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
@@ -39,6 +40,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 		groupsGroup.GET("/my", h.GetGroupForCurrentUser)
 		groupsGroup.POST("/:group_id/join", middleware.RoleMiddleware("student"), h.JoinToGroup)
 		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware("leader"), h.UploadSchedule)
+		groupsGroup.POST("/leave", middleware.RoleMiddleware("student"), h.LeaveFromGroup)
 		groupsGroup.GET("/:group_id/schedule", h.GetScheduleByGroupId)
 	}
 }
@@ -92,6 +94,32 @@ func (h *Handler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"group_id": groupID,
 	})
+}
+
+func (h *Handler) LeaveFromGroup(c *gin.Context) {
+	userID, ok := c.Get("userID")
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "wtf"})
+		return
+	}
+
+	// TOOO: error handler
+	if err := h.service.LeaveFromGroup(c.Request.Context(), userID.(uint64)); err != nil {
+		if errors.Is(err, domainErr.ErrGroupNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		if errors.Is(err, domainErr.ErrMemberNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
 func (h *Handler) JoinToGroup(c *gin.Context) {
@@ -171,6 +199,11 @@ func (h *Handler) UploadSchedule(c *gin.Context) {
 		}
 
 		if errors.Is(err, domainErr.ErrFacultyNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		if errors.Is(err, domainErr.ErrGroupNotFound) {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}

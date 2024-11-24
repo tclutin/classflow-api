@@ -29,7 +29,7 @@ func NewServices(
 	authService := auth.NewService(userService, tokenManager, cfg)
 	scheduleService := schedule.NewService(repositories.Schedule)
 	eduService := edu.NewService(repositories.Edu)
-	groupService := group.NewService(repositories.Group, repositories.Member, scheduleService, eduService)
+	groupService := group.NewService(repositories.Group, repositories.Member, scheduleService, userService, eduService)
 
 	return &Services{
 		User:     userService,

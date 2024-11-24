@@ -8,9 +8,14 @@ import (
 	"github.com/tclutin/classflow-api/internal/domain/edu"
 	domainErr "github.com/tclutin/classflow-api/internal/domain/errors"
 	"github.com/tclutin/classflow-api/internal/domain/schedule"
+	"github.com/tclutin/classflow-api/internal/domain/user"
 	"github.com/tclutin/classflow-api/pkg/hash"
 	"time"
 )
+
+type UserService interface {
+	GetById(ctx context.Context, userID uint64) (user.User, error)
+}
 
 type ScheduleService interface {
 	Create(ctx context.Context, schedule []schedule.Schedule) error
@@ -25,6 +30,7 @@ type EduService interface {
 }
 
 type MemberRepository interface {
+	Delete(ctx context.Context, userId uint64) error
 	Create(ctx context.Context, userID uint64, groupId uint64) (uint64, error)
 	GetGroupIdByUserId(ctx context.Context, userID uint64) (uint64, error)
 }
@@ -41,18 +47,50 @@ type Repository interface {
 
 type Service struct {
 	scheduleService ScheduleService
+	userService     UserService
 	eduService      EduService
 	memberRepo      MemberRepository
 	repo            Repository
 }
 
-func NewService(repository Repository, memberRepo MemberRepository, scheduleService ScheduleService, eduService EduService) *Service {
+func NewService(
+	repository Repository,
+	memberRepo MemberRepository,
+	scheduleService ScheduleService,
+	userService UserService,
+	eduService EduService,
+) *Service {
+
 	return &Service{
 		scheduleService: scheduleService,
+		userService:     userService,
 		repo:            repository,
 		memberRepo:      memberRepo,
 		eduService:      eduService,
 	}
+}
+
+func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
+	groupID, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domainErr.ErrMemberNotFound
+		}
+	}
+
+	group, err := s.GetById(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	//TODO TX manger needs
+	if err = s.memberRepo.Delete(ctx, userID); err != nil {
+		return err
+	}
+
+	group.NumberOfPeople = group.NumberOfPeople - 1
+
+	return s.repo.Update(ctx, group)
 }
 
 func (s *Service) GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID, userID uint64) ([]schedule.DetailsScheduleDTO, error) {

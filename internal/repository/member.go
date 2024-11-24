@@ -27,6 +27,14 @@ func (m *MemberRepository) Create(ctx context.Context, userID uint64, groupId ui
 	return memberID, nil
 }
 
+func (m *MemberRepository) Delete(ctx context.Context, userId uint64) error {
+	sql := `DELETE FROM public.members WHERE user_id = $1`
+
+	_, err := m.pool.Exec(ctx, sql, userId)
+
+	return err
+}
+
 func (m *MemberRepository) GetGroupIdByUserId(ctx context.Context, userID uint64) (uint64, error) {
 	sql := `SELECT group_id FROM public.members WHERE user_id = $1`
 
