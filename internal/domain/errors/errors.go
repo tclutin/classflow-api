@@ -38,4 +38,13 @@ var (
 
 	// ErrWrongGroupCode GroupService
 	ErrWrongGroupCode = errors.New("wrong group code")
+
+	// ErrGroupAlreadyHasSchedule GroupService
+	ErrGroupAlreadyHasSchedule = errors.New("group already has schedule")
+
+	//ErrThisGroupDoesNotBelongToYou GroupService
+	ErrThisGroupDoesNotBelongToYou = errors.New("this group does not belong to you")
+
+	//ErrYouArentMember GroupService
+	ErrYouArentMember = errors.New("you are not a member of this group")
 )

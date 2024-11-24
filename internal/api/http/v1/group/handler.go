@@ -3,12 +3,12 @@ package group
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tclutin/classflow-api/internal/api/http/middleware"
 	"github.com/tclutin/classflow-api/internal/domain/auth"
 	domainErr "github.com/tclutin/classflow-api/internal/domain/errors"
 	"github.com/tclutin/classflow-api/internal/domain/group"
+	"github.com/tclutin/classflow-api/internal/domain/schedule"
 	"net/http"
 	"strconv"
 )
@@ -19,7 +19,8 @@ type Service interface {
 	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]group.DetailsGroupDTO, error)
 	GetAllGroupsSummary(ctx context.Context) ([]group.SummaryGroupDTO, error)
 	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
-	UploadSchedule(ctx context.Context, userID, groupID uint64) error
+	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
+	GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID, userID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
 type Handler struct {
@@ -38,6 +39,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 		groupsGroup.GET("/my", h.GetGroupForCurrentUser)
 		groupsGroup.POST("/:group_id/join", middleware.RoleMiddleware("student"), h.JoinToGroup)
 		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware("leader"), h.UploadSchedule)
+		groupsGroup.GET("/:group_id/schedule", h.GetScheduleByGroupId)
 	}
 }
 
@@ -144,7 +146,10 @@ func (h *Handler) UploadSchedule(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(request)
+	if err := request.Validate(); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	groupID, err := strconv.ParseUint(c.Param("group_id"), 10, 64)
 	if err != nil {
@@ -158,14 +163,55 @@ func (h *Handler) UploadSchedule(c *gin.Context) {
 		return
 	}
 
-	err = h.service.UploadSchedule(c.Request.Context(), groupID, userID.(uint64))
-	if err != nil {
-		// TODO: Handlers errors
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "wtf"})
+	//TODO: need to fix double groupID
+	if err = h.service.UploadSchedule(c.Request.Context(), request.TransformToEntities(groupID), groupID, userID.(uint64)); err != nil {
+		if errors.Is(err, domainErr.ErrGroupAlreadyHasSchedule) {
+			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+
+		if errors.Is(err, domainErr.ErrFacultyNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		if errors.Is(err, domainErr.ErrThisGroupDoesNotBelongToYou) {
+			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+
+		if errors.Is(err, domainErr.ErrProgramNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
+	groupID, err := strconv.ParseUint(c.Param("group_id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, ok := c.Get("userID")
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "wtf"})
+		return
+	}
+
+	schedules, err := h.service.GetAllSchedulesByGroupIdAndUserId(c.Request.Context(), groupID, userID.(uint64))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, EntitiesToSchedulesResponse(schedules))
 }
 
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {

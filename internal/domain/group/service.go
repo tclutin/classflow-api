@@ -7,13 +7,21 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/tclutin/classflow-api/internal/domain/edu"
 	domainErr "github.com/tclutin/classflow-api/internal/domain/errors"
+	"github.com/tclutin/classflow-api/internal/domain/schedule"
 	"github.com/tclutin/classflow-api/pkg/hash"
 	"time"
 )
 
+type ScheduleService interface {
+	Create(ctx context.Context, schedule []schedule.Schedule) error
+	GetAllSchedulesByGroupId(ctx context.Context, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
+}
+
 type EduService interface {
 	GetFacultyById(ctx context.Context, facultyID uint64) (edu.Faculty, error)
 	GetProgramById(ctx context.Context, programID uint64) (edu.Program, error)
+	GetTypeOfSubjectById(ctx context.Context, typeOfSubjectId uint64) (edu.TypeOfSubject, error)
+	GetBuildingById(ctx context.Context, buildingID uint64) (edu.Building, error)
 }
 
 type MemberRepository interface {
@@ -32,22 +40,84 @@ type Repository interface {
 }
 
 type Service struct {
-	eduService EduService
-	memberRepo MemberRepository
-	repo       Repository
+	scheduleService ScheduleService
+	eduService      EduService
+	memberRepo      MemberRepository
+	repo            Repository
 }
 
-func (s *Service) UploadSchedule(ctx context.Context, userID, groupID uint64) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func NewService(repository Repository, memberRepo MemberRepository, eduService EduService) *Service {
+func NewService(repository Repository, memberRepo MemberRepository, scheduleService ScheduleService, eduService EduService) *Service {
 	return &Service{
-		repo:       repository,
-		memberRepo: memberRepo,
-		eduService: eduService,
+		scheduleService: scheduleService,
+		repo:            repository,
+		memberRepo:      memberRepo,
+		eduService:      eduService,
 	}
+}
+
+func (s *Service) GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID, userID uint64) ([]schedule.DetailsScheduleDTO, error) {
+	group, err := s.GetById(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	groupID, err = s.memberRepo.GetGroupIdByUserId(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domainErr.ErrYouArentMember
+		}
+	}
+
+	if group.GroupID != groupID {
+		return nil, domainErr.ErrYouArentMember
+	}
+
+	schedules, err := s.scheduleService.GetAllSchedulesByGroupId(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	return schedules, nil
+}
+
+// TODO: need tx manager on service layer
+func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error {
+	group, err := s.GetById(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	if group.LeaderID != userID {
+		return domainErr.ErrThisGroupDoesNotBelongToYou
+	}
+
+	if group.ExistsSchedule {
+		return domainErr.ErrGroupAlreadyHasSchedule
+	}
+
+	for _, value := range schedule {
+		_, err = s.eduService.GetTypeOfSubjectById(ctx, value.TypeOfSubjectID)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.eduService.GetFacultyById(ctx, value.BuildingsID)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = s.scheduleService.Create(ctx, schedule); err != nil {
+		return fmt.Errorf("cannot create new schedule: %w", err)
+	}
+
+	group.ExistsSchedule = true
+
+	if err = s.Update(ctx, group); err != nil {
+		return fmt.Errorf("cannot update group: %w", err)
+	}
+
+	return nil
 }
 
 // TODO: tx and normiы

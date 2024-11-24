@@ -84,8 +84,8 @@ func (h *Handler) LogIn(c *gin.Context) {
 	})
 
 	if err != nil {
-		if errors.Is(err, domainErr.ErrUserNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		if errors.Is(err, domainErr.ErrWrongPassword) {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 

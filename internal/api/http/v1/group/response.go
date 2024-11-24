@@ -1,7 +1,9 @@
 package group
 
 import (
+	"github.com/tclutin/classflow-api/internal/api/http/v1/edu"
 	"github.com/tclutin/classflow-api/internal/domain/group"
+	"github.com/tclutin/classflow-api/internal/domain/schedule"
 	"time"
 )
 
@@ -24,6 +26,18 @@ type DetailsGroupResponse struct {
 	NumberOfPeople int       `json:"number_of_people"`
 	ExistsSchedule bool      `json:"exists_schedule"`
 	CreatedAt      time.Time `json:"created_at"`
+}
+
+type DetailsScheduleResponse struct {
+	Type        string               `json:"type"`
+	SubjectName string               `json:"subject_name"`
+	Teacher     string               `json:"teacher"`
+	Room        string               `json:"room"`
+	IsEven      bool                 `json:"is_even"`
+	DayOfWeek   int                  `json:"day_of_week"`
+	StartTime   string               `json:"start_time"`
+	EndTime     string               `json:"end_time"`
+	Building    edu.BuildingResponse `json:"building"`
 }
 
 func EntitiesToSummaryGroupsResponse(entities []group.SummaryGroupDTO) []SummaryGroupResponse {
@@ -65,4 +79,32 @@ func EntitiesToDetailsGroupsResponse(entities []group.DetailsGroupDTO) []Details
 
 	return detailsGroupsResponse
 
+}
+
+func EntitiesToSchedulesResponse(entities []schedule.DetailsScheduleDTO) []DetailsScheduleResponse {
+	var schedulesResponse []DetailsScheduleResponse
+
+	for _, entity := range entities {
+		scheduleResponse := DetailsScheduleResponse{
+			Type:        entity.Type,
+			SubjectName: entity.SubjectName,
+			Teacher:     entity.Teacher,
+			Room:        entity.Room,
+			IsEven:      entity.IsEven,
+			DayOfWeek:   entity.DayOfWeek,
+			StartTime:   entity.StartTime,
+			EndTime:     entity.EndTime,
+			Building: edu.BuildingResponse{
+				BuildingID: entity.Building.BuildingID,
+				Name:       entity.Building.Name,
+				Latitude:   entity.Building.Latitude,
+				Longitude:  entity.Building.Longitude,
+				Address:    entity.Building.Address,
+			},
+		}
+
+		schedulesResponse = append(schedulesResponse, scheduleResponse)
+	}
+
+	return schedulesResponse
 }

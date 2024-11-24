@@ -24,7 +24,6 @@ func NewService(repo Repository) *Service {
 	}
 }
 
-// TODO: проверка на существование в сервисе дичь
 func (s *Service) GetByEmail(ctx context.Context, email string) (User, error) {
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
@@ -37,7 +36,6 @@ func (s *Service) GetByEmail(ctx context.Context, email string) (User, error) {
 	return user, nil
 }
 
-// TODO: проверка на существование в сервисе дичь
 func (s *Service) GetById(ctx context.Context, userID uint64) (User, error) {
 	user, err := s.repo.GetById(ctx, userID)
 	if err != nil {
@@ -50,7 +48,6 @@ func (s *Service) GetById(ctx context.Context, userID uint64) (User, error) {
 	return user, nil
 }
 
-// TODO: проверка на существование в сервисе дичь
 func (s *Service) Create(ctx context.Context, user User) (uint64, error) {
 	_, err := s.GetByEmail(ctx, user.Email)
 	if err == nil {

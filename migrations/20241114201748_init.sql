@@ -61,11 +61,12 @@ CREATE TABLE IF NOT EXISTS public.members (
 );
 
 CREATE TABLE IF NOT EXISTS public.schedule (
-    schedule_id BIGINT PRIMARY KEY,
+    schedule_id BIGSERIAL PRIMARY KEY,
     group_id BIGINT NOT NULL,
     buildings_id BIGINT NOT NULL,
     type_of_subject_id BIGINT NOT NULL,
     subject_name TEXT NOT NULL,
+    teacher TEXT NOT NULL,
     room TEXT NOT NULL,
     is_even BOOLEAN NOT NULL,
     day_of_week INT NOT NULL,

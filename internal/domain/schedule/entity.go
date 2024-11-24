@@ -4,10 +4,11 @@ import "time"
 
 type Schedule struct {
 	ScheduleID      uint64
-	groupID         uint64
-	buildingsID     uint64
-	TypeOfSubjectID int64
+	GroupID         uint64
+	BuildingsID     uint64
+	TypeOfSubjectID uint64
 	SubjectName     string
+	Teacher         string
 	Room            string
 	IsEven          bool
 	DayOfWeek       int
