@@ -39,7 +39,7 @@ type Repository interface {
 	Create(ctx context.Context, group Group) (uint64, error)
 	Update(ctx context.Context, group Group) error
 	GetById(ctx context.Context, groupID uint64) (Group, error)
-	GetSummaryGroups(ctx context.Context) ([]SummaryGroupDTO, error)
+	GetSummaryGroups(ctx context.Context, filter FilterDTO) ([]SummaryGroupDTO, error)
 	GetByShortName(ctx context.Context, shortname string) (Group, error)
 	GetStudentGroupByUserId(ctx context.Context, userID uint64) (SummaryGroupDTO, error)
 	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]DetailsGroupDTO, error)
@@ -242,8 +242,8 @@ func (s *Service) GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([
 	return s.repo.GetLeaderGroupsByUserId(ctx, userID)
 }
 
-func (s *Service) GetAllGroupsSummary(ctx context.Context) ([]SummaryGroupDTO, error) {
-	return s.repo.GetSummaryGroups(ctx)
+func (s *Service) GetAllGroupsSummary(ctx context.Context, filter FilterDTO) ([]SummaryGroupDTO, error) {
+	return s.repo.GetSummaryGroups(ctx, filter)
 }
 
 func (s *Service) GetById(ctx context.Context, groupID uint64) (Group, error) {

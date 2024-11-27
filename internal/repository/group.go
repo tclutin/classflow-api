@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tclutin/classflow-api/internal/domain/group"
+	"strings"
 )
 
 type GroupRepository struct {
@@ -73,7 +75,8 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 	return err
 }
 
-func (g *GroupRepository) GetSummaryGroups(ctx context.Context) ([]group.SummaryGroupDTO, error) {
+// TODO: needs sql builder/string builder
+func (g *GroupRepository) GetSummaryGroups(ctx context.Context, filter group.FilterDTO) ([]group.SummaryGroupDTO, error) {
 	sql := `
 		SELECT
 		    g.group_id,
@@ -90,7 +93,29 @@ func (g *GroupRepository) GetSummaryGroups(ctx context.Context) ([]group.Summary
 			public.faculties AS f ON g.faculty_id = f.faculty_id
 	`
 
-	rows, err := g.pool.Query(ctx, sql)
+	var conditions []string
+	var args []interface{}
+	var argCount int
+
+	if filter.Faculty != "" {
+		conditions = append(conditions, fmt.Sprintf("f.faculty_name = $%d", argCount+1))
+		args = append(args, filter.Faculty)
+		argCount++
+	}
+
+	if filter.Program != "" {
+		conditions = append(conditions, fmt.Sprintf("p.program_name = $%d", argCount+1))
+		args = append(args, filter.Program)
+		argCount++
+	}
+
+	if len(conditions) > 0 {
+		sql += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	fmt.Println(args, conditions)
+
+	rows, err := g.pool.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
 	}

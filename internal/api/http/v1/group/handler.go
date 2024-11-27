@@ -17,7 +17,7 @@ type Service interface {
 	Create(ctx context.Context, dto group.CreateGroupDTO) (uint64, error)
 	GetStudentGroupByUserId(ctx context.Context, userID uint64) (group.SummaryGroupDTO, error)
 	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]group.DetailsGroupDTO, error)
-	GetAllGroupsSummary(ctx context.Context) ([]group.SummaryGroupDTO, error)
+	GetAllGroupsSummary(ctx context.Context, filter group.FilterDTO) ([]group.SummaryGroupDTO, error)
 	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
 	LeaveFromGroup(ctx context.Context, userID uint64) error
 	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
@@ -33,14 +33,14 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
-	groupsGroup := router.Group("/groups", middleware.JWTMiddleware(authService))
+	groupsGroup := router.Group("/groups")
 	{
-		groupsGroup.POST("", middleware.RoleMiddleware("leader"), h.Create)
+		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("leader"), h.Create)
 		groupsGroup.GET("", h.GetAllGroupsSummary)
-		groupsGroup.GET("/my", h.GetGroupForCurrentUser)
-		groupsGroup.POST("/:group_id/join", middleware.RoleMiddleware("student"), h.JoinToGroup)
-		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware("leader"), h.UploadSchedule)
-		groupsGroup.POST("/leave", middleware.RoleMiddleware("student"), h.LeaveFromGroup)
+		groupsGroup.GET("/my", middleware.JWTMiddleware(authService), h.GetGroupForCurrentUser)
+		groupsGroup.POST("/:group_id/join", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("student"), h.JoinToGroup)
+		groupsGroup.POST("/:group_id/schedule", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("leader"), h.UploadSchedule)
+		groupsGroup.POST("/leave", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("student"), h.LeaveFromGroup)
 		groupsGroup.GET("/:group_id/schedule", h.GetScheduleByGroupId)
 	}
 }
@@ -253,7 +253,15 @@ func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
 }
 
 func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
-	groups, err := h.service.GetAllGroupsSummary(c.Request.Context())
+
+	program := c.DefaultQuery("program", "")
+	faculty := c.DefaultQuery("faculty", "")
+
+	groups, err := h.service.GetAllGroupsSummary(c.Request.Context(), group.FilterDTO{
+		Faculty: faculty,
+		Program: program,
+	})
+
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

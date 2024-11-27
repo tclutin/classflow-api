@@ -29,3 +29,8 @@ type SummaryGroupDTO struct {
 	NumberOfPeople int
 	ExistsSchedule bool
 }
+
+type FilterDTO struct {
+	Faculty string
+	Program string
+}
