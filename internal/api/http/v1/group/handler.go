@@ -21,7 +21,7 @@ type Service interface {
 	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
 	LeaveFromGroup(ctx context.Context, userID uint64) error
 	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
-	GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID, userID uint64) ([]schedule.DetailsScheduleDTO, error)
+	GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
 type Handler struct {
@@ -232,13 +232,7 @@ func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
 		return
 	}
 
-	userID, ok := c.Get("userID")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "wtf"})
-		return
-	}
-
-	schedules, err := h.service.GetAllSchedulesByGroupIdAndUserId(c.Request.Context(), groupID, userID.(uint64))
+	schedules, err := h.service.GetAllSchedulesByGroupIdAndUserId(c.Request.Context(), groupID)
 	if err != nil {
 		if errors.Is(err, domainErr.ErrYouArentMember) {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
