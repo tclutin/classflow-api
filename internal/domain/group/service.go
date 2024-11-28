@@ -93,7 +93,7 @@ func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
 	return s.repo.Update(ctx, group)
 }
 
-func (s *Service) GetAllSchedulesByGroupIdAndUserId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
+func (s *Service) GetAllSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
 	_, err := s.GetById(ctx, groupID)
 	if err != nil {
 		return nil, err
