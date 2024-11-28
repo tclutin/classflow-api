@@ -56,7 +56,7 @@ func (s *ScheduleRepository) Create(ctx context.Context, schedule []schedule.Sch
 	return nil
 }
 
-func (s *ScheduleRepository) GetAllSchedulesByGroupId(ctx context.Context, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
+func (s *ScheduleRepository) GetAllSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
 	sql := `
 		SELECT
 			t.name,
@@ -81,6 +81,14 @@ func (s *ScheduleRepository) GetAllSchedulesByGroupId(ctx context.Context, group
 		WHERE
 			group_id = $1
 		`
+
+	if filter.IsEven == "true" {
+		sql += " AND s.is_even = true"
+	}
+
+	if filter.IsEven == "false" {
+		sql += " AND s.is_even = false"
+	}
 
 	rows, err := s.pool.Query(ctx, sql, groupID)
 	if err != nil {

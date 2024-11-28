@@ -19,7 +19,7 @@ type UserService interface {
 
 type ScheduleService interface {
 	Create(ctx context.Context, schedule []schedule.Schedule) error
-	GetAllSchedulesByGroupId(ctx context.Context, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
+	GetAllSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
 type EduService interface {
@@ -93,13 +93,13 @@ func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
 	return s.repo.Update(ctx, group)
 }
 
-func (s *Service) GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
+func (s *Service) GetAllSchedulesByGroupIdAndUserId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
 	_, err := s.GetById(ctx, groupID)
 	if err != nil {
 		return nil, err
 	}
 
-	schedules, err := s.scheduleService.GetAllSchedulesByGroupId(ctx, groupID)
+	schedules, err := s.scheduleService.GetAllSchedulesByGroupId(ctx, filter, groupID)
 	if err != nil {
 		return nil, err
 	}

@@ -15,3 +15,7 @@ type DetailsScheduleDTO struct {
 	EndTime     string
 	Building    edu.Building
 }
+
+type FilterDTO struct {
+	IsEven string
+}

@@ -21,7 +21,7 @@ type Service interface {
 	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
 	LeaveFromGroup(ctx context.Context, userID uint64) error
 	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
-	GetAllSchedulesByGroupIdAndUserId(ctx context.Context, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
+	GetAllSchedulesByGroupIdAndUserId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
 type Handler struct {
@@ -226,13 +226,16 @@ func (h *Handler) UploadSchedule(c *gin.Context) {
 }
 
 func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
+
+	isEven := c.DefaultQuery("week_even", "")
+
 	groupID, err := strconv.ParseUint(c.Param("group_id"), 10, 64)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	schedules, err := h.service.GetAllSchedulesByGroupIdAndUserId(c.Request.Context(), groupID)
+	schedules, err := h.service.GetAllSchedulesByGroupIdAndUserId(c.Request.Context(), schedule.FilterDTO{IsEven: isEven}, groupID)
 	if err != nil {
 		if errors.Is(err, domainErr.ErrYouArentMember) {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
