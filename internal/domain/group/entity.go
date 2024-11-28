@@ -8,7 +8,6 @@ type Group struct {
 	FacultyID      uint64
 	ProgramID      uint64
 	ShortName      string
-	Code           string
 	NumberOfPeople int
 	ExistsSchedule bool
 	CreatedAt      time.Time

@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS public.groups (
     leader_id BIGINT NOT NULL,
     faculty_id BIGINT NOT NULL,
     program_id BIGINT NOT NULL,
-    code TEXT NOT NULL UNIQUE,
     short_name TEXT NOT NULL UNIQUE,
     exists_schedule BOOLEAN NOT NULL DEFAULT FALSE,
     number_of_people INT NOT NULL DEFAULT 1,

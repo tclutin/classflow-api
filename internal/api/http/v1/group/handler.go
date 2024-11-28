@@ -18,10 +18,10 @@ type Service interface {
 	GetStudentGroupByUserId(ctx context.Context, userID uint64) (group.SummaryGroupDTO, error)
 	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]group.DetailsGroupDTO, error)
 	GetAllGroupsSummary(ctx context.Context, filter group.FilterDTO) ([]group.SummaryGroupDTO, error)
-	JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error
+	JoinToGroup(ctx context.Context, userID, groupID uint64) error
 	LeaveFromGroup(ctx context.Context, userID uint64) error
 	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
-	GetAllSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
+	GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
 type Handler struct {
@@ -123,13 +123,6 @@ func (h *Handler) LeaveFromGroup(c *gin.Context) {
 }
 
 func (h *Handler) JoinToGroup(c *gin.Context) {
-	var request JoinToGroupRequest
-
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	groupID, err := strconv.ParseUint(c.Param("group_id"), 10, 64)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -142,15 +135,10 @@ func (h *Handler) JoinToGroup(c *gin.Context) {
 		return
 	}
 
-	err = h.service.JoinToGroup(c.Request.Context(), request.Code, userID.(uint64), groupID)
+	err = h.service.JoinToGroup(c.Request.Context(), userID.(uint64), groupID)
 	if err != nil {
 		if errors.Is(err, domainErr.ErrGroupNotFound) {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
-
-		if errors.Is(err, domainErr.ErrWrongGroupCode) {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -235,9 +223,14 @@ func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
 		return
 	}
 
-	schedules, err := h.service.GetAllSchedulesByGroupId(c.Request.Context(), schedule.FilterDTO{IsEven: isEven}, groupID)
+	schedules, err := h.service.GetSchedulesByGroupId(c.Request.Context(), schedule.FilterDTO{IsEven: isEven}, groupID)
 	if err != nil {
 		if errors.Is(err, domainErr.ErrYouArentMember) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
+		if errors.Is(err, domainErr.ErrGroupNotFound) {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}

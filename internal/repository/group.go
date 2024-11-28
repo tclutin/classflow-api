@@ -19,8 +19,8 @@ func NewGroupRepository(pool *pgxpool.Pool) *GroupRepository {
 func (g *GroupRepository) Create(ctx context.Context, group group.Group) (uint64, error) {
 	sql := `
 	INSERT INTO public.groups
-    (leader_id, faculty_id, program_id, code, short_name, exists_schedule, number_of_people, created_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING group_id;`
+    (leader_id, faculty_id, program_id, short_name, exists_schedule, number_of_people, created_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING group_id;`
 
 	row := g.pool.QueryRow(
 		ctx,
@@ -28,7 +28,6 @@ func (g *GroupRepository) Create(ctx context.Context, group group.Group) (uint64
 		group.LeaderID,
 		group.FacultyID,
 		group.ProgramID,
-		group.Code,
 		group.ShortName,
 		group.ExistsSchedule,
 		group.NumberOfPeople,
@@ -52,11 +51,10 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 			faculty_id = $2,
 			program_id = $3,
 			short_name = $4,
-			code = $5,
-			number_of_people = $6,
-			exists_schedule = $7,
-			created_at = $8
-		WHERE group_id = $9
+			number_of_people = $5,
+			exists_schedule = $6,
+			created_at = $7
+		WHERE group_id = $8
 		`
 
 	_, err := g.pool.Exec(
@@ -66,7 +64,6 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 		group.FacultyID,
 		group.ProgramID,
 		group.ShortName,
-		group.Code,
 		group.NumberOfPeople,
 		group.ExistsSchedule,
 		group.CreatedAt,
@@ -190,7 +187,6 @@ func (g *GroupRepository) GetLeaderGroupsByUserId(ctx context.Context, userID ui
 			f.faculty_name,
 			p.program_name,
 			g.short_name,
-			g.code,
 			g.number_of_people,
 			g.exists_schedule,
 			g.created_at
@@ -222,7 +218,6 @@ func (g *GroupRepository) GetLeaderGroupsByUserId(ctx context.Context, userID ui
 			&group.Faculty,
 			&group.Program,
 			&group.ShortName,
-			&group.Code,
 			&group.NumberOfPeople,
 			&group.ExistsSchedule,
 			&group.CreatedAt)
@@ -250,7 +245,6 @@ func (g *GroupRepository) GetByShortName(ctx context.Context, shortname string) 
 		&group.FacultyID,
 		&group.ProgramID,
 		&group.ShortName,
-		&group.Code,
 		&group.ExistsSchedule,
 		&group.NumberOfPeople,
 		&group.CreatedAt)
@@ -275,7 +269,6 @@ func (g *GroupRepository) GetByCode(ctx context.Context, code string) (group.Gro
 		&group.FacultyID,
 		&group.ProgramID,
 		&group.ShortName,
-		&group.Code,
 		&group.NumberOfPeople,
 		&group.ExistsSchedule,
 		&group.CreatedAt)
@@ -305,7 +298,6 @@ func (g *GroupRepository) GetById(ctx context.Context, groupID uint64) (group.Gr
 		&group.LeaderID,
 		&group.FacultyID,
 		&group.ProgramID,
-		&group.Code,
 		&group.ShortName,
 		&group.ExistsSchedule,
 		&group.NumberOfPeople,

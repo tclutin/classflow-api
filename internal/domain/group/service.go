@@ -9,7 +9,6 @@ import (
 	domainErr "github.com/tclutin/classflow-api/internal/domain/errors"
 	"github.com/tclutin/classflow-api/internal/domain/schedule"
 	"github.com/tclutin/classflow-api/internal/domain/user"
-	"github.com/tclutin/classflow-api/pkg/hash"
 	"time"
 )
 
@@ -19,7 +18,7 @@ type UserService interface {
 
 type ScheduleService interface {
 	Create(ctx context.Context, schedule []schedule.Schedule) error
-	GetAllSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
+	GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
 type EduService interface {
@@ -93,13 +92,13 @@ func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
 	return s.repo.Update(ctx, group)
 }
 
-func (s *Service) GetAllSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
+func (s *Service) GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
 	_, err := s.GetById(ctx, groupID)
 	if err != nil {
 		return nil, err
 	}
 
-	schedules, err := s.scheduleService.GetAllSchedulesByGroupId(ctx, filter, groupID)
+	schedules, err := s.scheduleService.GetSchedulesByGroupId(ctx, filter, groupID)
 	if err != nil {
 		return nil, err
 	}
@@ -168,17 +167,11 @@ func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error
 		return 0, domainErr.ErrFacultyProgramIdMismatch
 	}
 
-	code, err := s.GenCode(4)
-	if err != nil {
-		return 0, err
-	}
-
 	entity := Group{
 		LeaderID:       dto.LeaderID,
 		FacultyID:      dto.FacultyID,
 		ProgramID:      dto.ProgramID,
 		ShortName:      dto.ShortName,
-		Code:           code,
 		NumberOfPeople: 1,
 		ExistsSchedule: false,
 		CreatedAt:      time.Now(),
@@ -248,7 +241,8 @@ func (s *Service) GetById(ctx context.Context, groupID uint64) (Group, error) {
 	return group, nil
 }
 
-func (s *Service) JoinToGroup(ctx context.Context, code string, userID, groupID uint64) error {
+// TODO: needs tx
+func (s *Service) JoinToGroup(ctx context.Context, userID, groupID uint64) error {
 	_, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
 	if err == nil {
 		return domainErr.ErrAlreadyInGroup
@@ -263,32 +257,13 @@ func (s *Service) JoinToGroup(ctx context.Context, code string, userID, groupID 
 		return fmt.Errorf("failed to get group: %w", err)
 	}
 
-	if group.Code != code {
-		return domainErr.ErrWrongGroupCode
-	}
-
 	_, err = s.memberRepo.Create(ctx, userID, groupID)
 	if err != nil {
-		return fmt.Errorf("failed to create memberp: %w", err)
+		return fmt.Errorf("failed to create member: %w", err)
 	}
 
 	group.NumberOfPeople++
 
 	return s.repo.Update(ctx, group)
 
-}
-
-func (s *Service) GenCode(size int64) (string, error) {
-	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
-	alias := make([]rune, size)
-
-	for i := range alias {
-		rnd, err := hash.NewCryptoRand(int64(len(chars)))
-		if err != nil {
-			return "", err
-		}
-		alias[i] = chars[rnd]
-	}
-
-	return string(alias), nil
 }

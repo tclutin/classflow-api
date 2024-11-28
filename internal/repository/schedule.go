@@ -56,7 +56,7 @@ func (s *ScheduleRepository) Create(ctx context.Context, schedule []schedule.Sch
 	return nil
 }
 
-func (s *ScheduleRepository) GetAllSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
+func (s *ScheduleRepository) GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
 	sql := `
 		SELECT
 			t.name,

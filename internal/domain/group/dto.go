@@ -15,7 +15,6 @@ type DetailsGroupDTO struct {
 	Faculty        string
 	Program        string
 	ShortName      string
-	Code           string
 	NumberOfPeople int
 	ExistsSchedule bool
 	CreatedAt      time.Time

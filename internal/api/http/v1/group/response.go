@@ -22,7 +22,6 @@ type DetailsGroupResponse struct {
 	Faculty        string    `json:"faculty"`
 	Program        string    `json:"program"`
 	ShortName      string    `json:"short_name"`
-	Code           string    `json:"code"`
 	NumberOfPeople int       `json:"number_of_people"`
 	ExistsSchedule bool      `json:"exists_schedule"`
 	CreatedAt      time.Time `json:"created_at"`
@@ -68,7 +67,6 @@ func EntitiesToDetailsGroupsResponse(entities []group.DetailsGroupDTO) []Details
 			Faculty:        entity.Faculty,
 			Program:        entity.Program,
 			ShortName:      entity.ShortName,
-			Code:           entity.Code,
 			NumberOfPeople: entity.NumberOfPeople,
 			ExistsSchedule: entity.ExistsSchedule,
 			CreatedAt:      entity.CreatedAt,

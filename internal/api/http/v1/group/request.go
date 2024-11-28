@@ -12,10 +12,6 @@ type CreateGroupRequest struct {
 	ShortName string `json:"short_name" binding:"required,min=4,max=12"`
 }
 
-type JoinToGroupRequest struct {
-	Code string `json:"code" binding:"required,max=10"`
-}
-
 type SubjectRequest struct {
 	Name       string `json:"name" binding:"required"`
 	Room       string `json:"room" binding:"required"`
