@@ -64,6 +64,29 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 	return usr, nil
 }
 
+func (u *UserRepository) GetByTelegramChatId(ctx context.Context, telegramChatID int64) (user.User, error) {
+	sql := `SELECT * FROM public.users WHERE telegram_chat = $1`
+
+	row := u.pool.QueryRow(ctx, sql, telegramChatID)
+
+	var usr user.User
+	err := row.Scan(
+		&usr.UserID,
+		&usr.Email,
+		&usr.PasswordHash,
+		&usr.Role,
+		&usr.FullName,
+		&usr.TelegramChatID,
+		&usr.NotificationsEnabled,
+		&usr.CreatedAt)
+
+	if err != nil {
+		return usr, err
+	}
+
+	return usr, nil
+}
+
 func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, error) {
 	sql := `INSERT INTO public.users (email, password_hash, role, fullname, telegram_chat, notifications_enabled, created_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)

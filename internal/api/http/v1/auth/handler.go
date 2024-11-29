@@ -55,6 +55,11 @@ func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 	})
 
 	if err != nil {
+		if errors.Is(err, domainErr.ErrUserAlreadyExists) {
+			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -66,7 +71,31 @@ func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 }
 
 func (h *Handler) LogInWithTelegram(c *gin.Context) {
+	var request LogInWithTelegramRequest
 
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tokens, err := h.service.LogInWithTelegramRequest(c.Request.Context(), auth.LogInWithTelegramDTO{
+		TelegramChatID: request.TelegramChatID,
+	})
+
+	if err != nil {
+		if errors.Is(err, domainErr.ErrUserNotFound) {
+			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, TokenResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
 }
 
 func (h *Handler) SignUp(c *gin.Context) {

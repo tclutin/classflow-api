@@ -32,6 +32,7 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
 }
 
+// TODO: загрузку надо переделать для админа и лидера/сделать так, чтоыб старосты и студенты были одной ролью
 func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	groupsGroup := router.Group("/groups")
 	{
