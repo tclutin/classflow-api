@@ -4,12 +4,19 @@ import (
 	"time"
 )
 
+const (
+	Admin   = "admin"
+	Leader  = "leader"
+	Student = "student"
+)
+
 type User struct {
-	UserID       uint64    `db:"user_id"`
-	Email        string    `db:"email"`
-	PasswordHash string    `db:"password_hash"`
-	Role         string    `db:"role"`
-	FullName     *string   `db:"fullname"`
-	Telegram     *string   `db:"telegram"`
-	CreatedAt    time.Time `db:"created_at"`
+	UserID               uint64
+	Email                *string
+	PasswordHash         *string
+	Role                 string
+	FullName             *string
+	TelegramChatID       *int64
+	NotificationsEnabled *bool
+	CreatedAt            time.Time
 }

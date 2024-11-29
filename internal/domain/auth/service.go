@@ -44,12 +44,13 @@ func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
 	}
 
 	entity := user.User{
-		Email:        dto.Email,
-		PasswordHash: bcryptHash,
-		Role:         dto.Role,
-		FullName:     dto.FullName,
-		Telegram:     dto.Telegram,
-		CreatedAt:    time.Now(),
+		Email:                &dto.Email,
+		PasswordHash:         &bcryptHash,
+		Role:                 user.Admin,
+		FullName:             nil,
+		TelegramChatID:       nil,
+		NotificationsEnabled: nil,
+		CreatedAt:            time.Now(),
 	}
 
 	userID, err := s.userService.Create(ctx, entity)
@@ -69,16 +70,16 @@ func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
 }
 
 func (s *Service) LogIn(ctx context.Context, dto LogInDTO) (TokenDTO, error) {
-	user, err := s.userService.GetByEmail(ctx, dto.Email)
+	usr, err := s.userService.GetByEmail(ctx, dto.Email)
 	if err != nil {
 		return TokenDTO{}, err
 	}
 
-	if !hash.CompareBcryptHash(user.PasswordHash, dto.Password) {
+	if !hash.CompareBcryptHash(*usr.PasswordHash, dto.Password) {
 		return TokenDTO{}, errors.ErrWrongPassword
 	}
 
-	token, err := s.tokenManager.NewToken(user.UserID, s.cfg.JWT.Expire)
+	token, err := s.tokenManager.NewToken(usr.UserID, s.cfg.JWT.Expire)
 	if err != nil {
 		return TokenDTO{}, fmt.Errorf("failed to create access token: %w", err)
 	}
@@ -89,13 +90,20 @@ func (s *Service) LogIn(ctx context.Context, dto LogInDTO) (TokenDTO, error) {
 	}, nil
 }
 
+func (s *Service) SignUpWithTelegram(ctx context.Context, dto SignUpWithTelegramDTO) (TokenDTO, error) {
+	panic("у")
+}
+func (s *Service) LogInWithTelegramRequest(ctx context.Context, dto LogInWithTelegramDTO) (TokenDTO, error) {
+	panic("")
+}
+
 func (s *Service) Who(ctx context.Context, userID uint64) (user.User, error) {
-	user, err := s.userService.GetById(ctx, userID)
+	usr, err := s.userService.GetById(ctx, userID)
 	if err != nil {
-		return user, err
+		return usr, err
 	}
 
-	return user, nil
+	return usr, nil
 }
 
 func (s *Service) VerifyAndGetCredentials(ctx context.Context, token string) (user.User, error) {

@@ -45,13 +45,25 @@ func (s *Service) GetById(ctx context.Context, userID uint64) (User, error) {
 
 		return user, fmt.Errorf("failed to get user by id: %w", err)
 	}
+
 	return user, nil
 }
 
 func (s *Service) Create(ctx context.Context, user User) (uint64, error) {
-	_, err := s.GetByEmail(ctx, user.Email)
-	if err == nil {
-		return 0, domenErr.ErrUserAlreadyExists
+
+	if user.Email != nil {
+
+		_, err := s.GetByEmail(ctx, *user.Email)
+		if err == nil {
+			return 0, domenErr.ErrUserAlreadyExists
+		}
+
+		userID, err := s.repo.Create(ctx, user)
+		if err != nil {
+			return 0, fmt.Errorf("failed to create user: %w", err)
+		}
+
+		return userID, nil
 	}
 
 	userID, err := s.repo.Create(ctx, user)

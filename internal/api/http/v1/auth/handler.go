@@ -15,6 +15,8 @@ import (
 type Service interface {
 	SignUp(ctx context.Context, dto auth.SignUpDTO) (auth.TokenDTO, error)
 	LogIn(ctx context.Context, dto auth.LogInDTO) (auth.TokenDTO, error)
+	SignUpWithTelegram(ctx context.Context, dto auth.SignUpWithTelegramDTO) (auth.TokenDTO, error)
+	LogInWithTelegramRequest(ctx context.Context, dto auth.LogInWithTelegramDTO) (auth.TokenDTO, error)
 	Who(ctx context.Context, userID uint64) (user.User, error)
 }
 
@@ -33,8 +35,38 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	{
 		authGroup.POST("/signup", h.SignUp)
 		authGroup.POST("/login", h.LogIn)
+		authGroup.POST("/telegram/login", h.LogInWithTelegram)
+		authGroup.POST("/telegram/signup", h.SignUpWithTelegram)
 		authGroup.GET("/who", middleware.JWTMiddleware(authService), h.Who)
 	}
+}
+
+func (h *Handler) SignUpWithTelegram(c *gin.Context) {
+	var request SignUpWithTelegramRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tokens, err := h.service.SignUpWithTelegram(c.Request.Context(), auth.SignUpWithTelegramDTO{
+		TelegramChatID: request.TelegramChatID,
+		Fullname:       request.Fullname,
+	})
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, TokenResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	})
+}
+
+func (h *Handler) LogInWithTelegram(c *gin.Context) {
+
 }
 
 func (h *Handler) SignUp(c *gin.Context) {
@@ -48,9 +80,6 @@ func (h *Handler) SignUp(c *gin.Context) {
 	tokens, err := h.service.SignUp(c.Request.Context(), auth.SignUpDTO{
 		Email:    request.Email,
 		Password: request.Password,
-		Role:     request.Role,
-		FullName: request.FullName,
-		Telegram: request.Telegram,
 	})
 
 	if err != nil {
@@ -113,17 +142,22 @@ func (h *Handler) Who(c *gin.Context) {
 
 	who, err := h.service.Who(c.Request.Context(), value.(uint64))
 	if err != nil {
+		if errors.Is(err, domainErr.ErrUserNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, UserDetailsResponse{
-		UserID:       who.UserID,
-		Email:        who.Email,
-		PasswordHash: who.PasswordHash,
-		Role:         who.Role,
-		FullName:     who.FullName,
-		Telegram:     who.Telegram,
-		CreatedAt:    who.CreatedAt,
+		UserID:               who.UserID,
+		Email:                who.Email,
+		PasswordHash:         who.PasswordHash,
+		Role:                 who.Role,
+		FullName:             who.FullName,
+		TelegramChatID:       who.TelegramChatID,
+		NotificationsEnabled: who.NotificationsEnabled,
+		CreatedAt:            who.CreatedAt,
 	})
 }

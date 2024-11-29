@@ -28,7 +28,8 @@ func (u *UserRepository) GetById(ctx context.Context, userID uint64) (user.User,
 		&usr.PasswordHash,
 		&usr.Role,
 		&usr.FullName,
-		&usr.Telegram,
+		&usr.TelegramChatID,
+		&usr.NotificationsEnabled,
 		&usr.CreatedAt,
 	)
 
@@ -51,7 +52,8 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 		&usr.PasswordHash,
 		&usr.Role,
 		&usr.FullName,
-		&usr.Telegram,
+		&usr.TelegramChatID,
+		&usr.NotificationsEnabled,
 		&usr.CreatedAt,
 	)
 
@@ -63,8 +65,8 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 }
 
 func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, error) {
-	sql := `INSERT INTO public.users (email, password_hash, role, fullname, telegram, created_at)
-			VALUES ($1, $2, $3, $4, $5, $6)
+	sql := `INSERT INTO public.users (email, password_hash, role, fullname, telegram_chat, notifications_enabled, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			RETURNING user_id`
 
 	row := u.pool.QueryRow(
@@ -72,8 +74,10 @@ func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, er
 		sql,
 		user.Email,
 		user.PasswordHash,
-		user.Role, user.FullName,
-		user.Telegram,
+		user.Role,
+		user.FullName,
+		user.TelegramChatID,
+		user.NotificationsEnabled,
 		user.CreatedAt)
 
 	var userID uint64

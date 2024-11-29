@@ -29,11 +29,12 @@ CREATE TABLE IF NOT EXISTS public.buildings (
 
 CREATE TABLE IF NOT EXISTS public.users (
     user_id BIGSERIAL PRIMARY KEY,
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('student', 'teacher', 'leader')),
+    email TEXT UNIQUE,
+    password_hash TEXT,
+    role TEXT NOT NULL CHECK (role IN ('student', 'leader', 'admin')),
     fullname TEXT,
-    telegram TEXT,
+    telegram_chat BIGINT,
+    notifications_enabled BOOLEAN,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp
 );
 
