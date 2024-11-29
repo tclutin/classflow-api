@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/tclutin/classflow-api/docs"
 	"github.com/tclutin/classflow-api/internal/api/http/middleware"
 	"github.com/tclutin/classflow-api/internal/domain/auth"
 	domainErr "github.com/tclutin/classflow-api/internal/domain/errors"
@@ -84,7 +83,7 @@ func (h *Handler) LogInWithTelegram(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domainErr.ErrUserNotFound) {
-			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -98,11 +97,28 @@ func (h *Handler) LogInWithTelegram(c *gin.Context) {
 	})
 }
 
+type HTTPError struct {
+	Code    int    `json:"code"`    // HTTP статус код
+	Message string `json:"message"` // Сообщение об ошибке
+}
+
+// SignUp godoc
+// @Summary      Register a new account
+// @Description  Create a new user account with email and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body     SignUpRequest  true  "Register new account"
+// @Success      201  {object}  TokenResponse
+// @Failure      400  {object}  HTTPError
+// @Failure      409  {object}  HTTPError
+// @Failure      500  {object}  HTTPError
+// @Router       /auth/signup [post]
 func (h *Handler) SignUp(c *gin.Context) {
 	var request SignUpRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, HTTPError{Code: http.StatusBadRequest, Message: err.Error()})
 		return
 	}
 
@@ -113,12 +129,12 @@ func (h *Handler) SignUp(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domainErr.ErrUserAlreadyExists) {
-			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusConflict, HTTPError{Code: http.StatusConflict, Message: err.Error()})
 			return
 
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, HTTPError{Code: http.StatusInternalServerError, Message: err.Error()})
 		return
 	}
 

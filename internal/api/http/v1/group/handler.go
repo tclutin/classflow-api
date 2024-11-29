@@ -32,11 +32,11 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
 }
 
-// TODO: загрузку надо переделать для админа и лидера/сделать так, чтоыб старосты и студенты были одной ролью
 func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	groupsGroup := router.Group("/groups")
 	{
-		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("leader"), h.Create)
+		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("admin"), h.Create)
+
 		groupsGroup.GET("", h.GetAllGroupsSummary)
 		groupsGroup.GET("/my", middleware.JWTMiddleware(authService), h.GetGroupForCurrentUser)
 		groupsGroup.POST("/:group_id/join", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("student"), h.JoinToGroup)
@@ -54,14 +54,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	value, ok := c.Get("userID")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "wtf"})
-		return
-	}
-
 	groupID, err := h.service.Create(c.Request.Context(), group.CreateGroupDTO{
-		LeaderID:  value.(uint64),
 		FacultyID: request.FacultyID,
 		ProgramID: request.ProgramID,
 		ShortName: request.ShortName,

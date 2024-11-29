@@ -36,9 +36,6 @@ var (
 	// ErrAlreadyInGroup GroupService
 	ErrAlreadyInGroup = errors.New("you are already in a group and cannot join another")
 
-	// ErrWrongGroupCode GroupService
-	ErrWrongGroupCode = errors.New("wrong group code")
-
 	// ErrGroupAlreadyHasSchedule GroupService
 	ErrGroupAlreadyHasSchedule = errors.New("group already has schedule")
 

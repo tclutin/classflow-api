@@ -3,7 +3,6 @@ package group
 import "time"
 
 type CreateGroupDTO struct {
-	LeaderID  uint64
 	FacultyID uint64
 	ProgramID uint64
 	ShortName string

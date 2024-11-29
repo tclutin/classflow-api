@@ -18,14 +18,6 @@ func NewHandler(services *domain.Services) *Handler {
 	}
 }
 
-// @Summary      SignUp
-// @Description  register user
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Success      201  {object}  TokenResponse
-// @Router       /signup [post]
-
 func (h *Handler) InitAPI(router *gin.RouterGroup) {
 	apiGroup := router.Group("/v1")
 	{

@@ -33,7 +33,7 @@ func JWTMiddleware(authService *auth.Service) gin.HandlerFunc {
 	}
 }
 
-func RoleMiddleware(requiredRole string) gin.HandlerFunc {
+func RoleMiddleware(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, ok := c.Get("role")
 		if !ok {
@@ -47,9 +47,11 @@ func RoleMiddleware(requiredRole string) gin.HandlerFunc {
 			return
 		}
 
-		if extractRole != requiredRole {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "access denied"})
-			return
+		for _, r := range roles {
+			if extractRole == r {
+				c.Next()
+				return
+			}
 		}
 
 		c.Next()

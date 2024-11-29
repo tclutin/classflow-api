@@ -146,7 +146,6 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 	return nil
 }
 
-// TODO: tx and normiы
 func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error) {
 	_, err := s.GetByShortName(ctx, dto.ShortName)
 	if err == nil {
@@ -168,11 +167,11 @@ func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error
 	}
 
 	entity := Group{
-		LeaderID:       dto.LeaderID,
+		LeaderID:       nil,
 		FacultyID:      dto.FacultyID,
 		ProgramID:      dto.ProgramID,
 		ShortName:      dto.ShortName,
-		NumberOfPeople: 1,
+		NumberOfPeople: 0,
 		ExistsSchedule: false,
 		CreatedAt:      time.Now(),
 	}
@@ -180,11 +179,6 @@ func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error
 	groupID, err := s.repo.Create(ctx, entity)
 	if err != nil {
 		return 0, fmt.Errorf("error creating group: %w", err)
-	}
-
-	_, err = s.memberRepo.Create(ctx, entity.LeaderID, groupID)
-	if err != nil {
-		return 0, err
 	}
 
 	return groupID, nil

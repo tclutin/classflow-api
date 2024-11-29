@@ -40,12 +40,12 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 CREATE TABLE IF NOT EXISTS public.groups (
     group_id BIGSERIAL PRIMARY KEY,
-    leader_id BIGINT NOT NULL,
+    leader_id BIGINT,
     faculty_id BIGINT NOT NULL,
     program_id BIGINT NOT NULL,
     short_name TEXT NOT NULL UNIQUE,
     exists_schedule BOOLEAN NOT NULL DEFAULT FALSE,
-    number_of_people INT NOT NULL DEFAULT 1,
+    number_of_people INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
     FOREIGN KEY (leader_id) REFERENCES public.users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (faculty_id) REFERENCES public.faculties (faculty_id),

@@ -6,9 +6,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-//	@title			Support API
-//	@version		5.0
-//	@description	This is a sample server celler server.
+//	@title			ClassFlow API
+//	@version		1.0
+//	@description	This is t
 
 //	@host						localhost:8080
 //	@BasePath					/api/v1
