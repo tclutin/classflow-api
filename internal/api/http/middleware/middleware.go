@@ -54,6 +54,6 @@ func RoleMiddleware(roles ...string) gin.HandlerFunc {
 			}
 		}
 
-		c.Next()
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "you do not have permission to access this resource"})
 	}
 }

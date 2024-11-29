@@ -9,6 +9,7 @@ import (
 	domainErr "github.com/tclutin/classflow-api/internal/domain/errors"
 	"github.com/tclutin/classflow-api/internal/domain/group"
 	"github.com/tclutin/classflow-api/internal/domain/schedule"
+	"github.com/tclutin/classflow-api/internal/domain/user"
 	"net/http"
 	"strconv"
 )
@@ -35,7 +36,7 @@ func NewHandler(service Service) *Handler {
 func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	groupsGroup := router.Group("/groups")
 	{
-		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("admin"), h.Create)
+		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.Create)
 
 		groupsGroup.GET("", h.GetAllGroupsSummary)
 		groupsGroup.GET("/my", middleware.JWTMiddleware(authService), h.GetGroupForCurrentUser)

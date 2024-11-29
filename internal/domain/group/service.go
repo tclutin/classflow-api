@@ -69,6 +69,48 @@ func NewService(
 	}
 }
 
+func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error) {
+	_, err := s.GetByShortName(ctx, dto.ShortName)
+	if err == nil {
+		return 0, domainErr.ErrGroupAlreadyExists
+	}
+
+	program, err := s.eduService.GetProgramById(ctx, dto.ProgramID)
+	if err != nil {
+		return 0, err
+	}
+
+	faculty, err := s.eduService.GetFacultyById(ctx, dto.FacultyID)
+	if err != nil {
+		return 0, err
+	}
+
+	if program.FacultyID != faculty.FacultyID {
+		return 0, domainErr.ErrFacultyProgramIdMismatch
+	}
+
+	entity := Group{
+		LeaderID:       nil,
+		FacultyID:      dto.FacultyID,
+		ProgramID:      dto.ProgramID,
+		ShortName:      dto.ShortName,
+		NumberOfPeople: 0,
+		ExistsSchedule: false,
+		CreatedAt:      time.Now(),
+	}
+
+	groupID, err := s.repo.Create(ctx, entity)
+	if err != nil {
+		return 0, fmt.Errorf("error creating group: %w", err)
+	}
+
+	return groupID, nil
+}
+
+func (s *Service) Update(ctx context.Context, group Group) error {
+	return s.repo.Update(ctx, group)
+}
+
 func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
 	groupID, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
 	if err != nil {
@@ -113,7 +155,7 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 		return err
 	}
 
-	if group.LeaderID != userID {
+	if *group.LeaderID != userID {
 		return domainErr.ErrThisGroupDoesNotBelongToYou
 	}
 
@@ -144,48 +186,6 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 	}
 
 	return nil
-}
-
-func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error) {
-	_, err := s.GetByShortName(ctx, dto.ShortName)
-	if err == nil {
-		return 0, domainErr.ErrGroupAlreadyExists
-	}
-
-	program, err := s.eduService.GetProgramById(ctx, dto.ProgramID)
-	if err != nil {
-		return 0, err
-	}
-
-	faculty, err := s.eduService.GetFacultyById(ctx, dto.FacultyID)
-	if err != nil {
-		return 0, err
-	}
-
-	if program.FacultyID != faculty.FacultyID {
-		return 0, domainErr.ErrFacultyProgramIdMismatch
-	}
-
-	entity := Group{
-		LeaderID:       nil,
-		FacultyID:      dto.FacultyID,
-		ProgramID:      dto.ProgramID,
-		ShortName:      dto.ShortName,
-		NumberOfPeople: 0,
-		ExistsSchedule: false,
-		CreatedAt:      time.Now(),
-	}
-
-	groupID, err := s.repo.Create(ctx, entity)
-	if err != nil {
-		return 0, fmt.Errorf("error creating group: %w", err)
-	}
-
-	return groupID, nil
-}
-
-func (s *Service) Update(ctx context.Context, group Group) error {
-	return s.repo.Update(ctx, group)
 }
 
 func (s *Service) GetByShortName(ctx context.Context, shortname string) (Group, error) {
