@@ -39,8 +39,8 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.Create)
 
 		groupsGroup.GET("", h.GetAllGroupsSummary)
-		groupsGroup.GET("/my", middleware.JWTMiddleware(authService), h.GetGroupForCurrentUser)
-		groupsGroup.POST("/:group_id/join", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("student"), h.JoinToGroup)
+		groupsGroup.GET("/me", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student, user.Leader), h.GetGroupForCurrentUser)
+		groupsGroup.POST("/:group_id/join", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student), h.JoinToGroup)
 		groupsGroup.POST("/:group_id/schedule", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("leader"), h.UploadSchedule)
 		groupsGroup.POST("/leave", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("student"), h.LeaveFromGroup)
 		groupsGroup.GET("/:group_id/schedule", h.GetScheduleByGroupId)

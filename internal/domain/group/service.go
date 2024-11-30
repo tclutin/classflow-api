@@ -242,13 +242,9 @@ func (s *Service) JoinToGroup(ctx context.Context, userID, groupID uint64) error
 		return domainErr.ErrAlreadyInGroup
 	}
 
-	group, err := s.repo.GetById(ctx, groupID)
+	group, err := s.GetById(ctx, groupID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return domainErr.ErrGroupNotFound
-		}
-
-		return fmt.Errorf("failed to get group: %w", err)
+		return err
 	}
 
 	_, err = s.memberRepo.Create(ctx, userID, groupID)
