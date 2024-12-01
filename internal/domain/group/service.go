@@ -180,10 +180,6 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 		return err
 	}
 
-	if *group.LeaderID != userID {
-		return domainErr.ErrThisGroupDoesNotBelongToYou
-	}
-
 	if group.ExistsSchedule {
 		return domainErr.ErrGroupAlreadyHasSchedule
 	}
