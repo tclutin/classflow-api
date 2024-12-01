@@ -1,8 +1,7 @@
 package response
 
 type APIError struct {
-	Error  string `json:"error"`
-	Detail string `json:"detail,omitempty"`
+	Error string `json:"error"`
 }
 
 func NewAPIError(error string) APIError {

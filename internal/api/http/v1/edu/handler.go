@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/tclutin/classflow-api/internal/domain/edu"
+	"github.com/tclutin/classflow-api/pkg/response"
 	"net/http"
 	"strconv"
 )
@@ -33,48 +34,82 @@ func (h *Handler) Bind(router *gin.RouterGroup) {
 	}
 }
 
+// @Summary		GetAllBuildings
+// @Description	Получить список корпусов
+// @Tags			edu
+// @Accept			json
+// @Produce		json
+// @Success		200	{array}		BuildingResponse
+// @Failure		500	{object}	response.APIError
+// @Router			/edu/buildings [get]
 func (h *Handler) GetAllBuildings(c *gin.Context) {
 	buildings, err := h.service.GetAllBuildings(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
 	c.JSON(http.StatusOK, EntitiesToBuildingsResponse(buildings))
 }
 
+// @Summary		GetAllTypesOfSubject
+// @Description	Получить список типов всех предметов
+// @Tags			edu
+// @Accept			json
+// @Produce		json
+// @Success		200	{array}		TypeOfSubjectResponse
+// @Failure		500	{object}	response.APIError
+// @Router			/edu/types_of_subject [get]
 func (h *Handler) GetAllTypesOfSubject(c *gin.Context) {
 	types, err := h.service.GetAllTypesOfSubject(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
 	c.JSON(http.StatusOK, EntitiesToTypesOfSubjectResponse(types))
 }
 
+// @Summary		GetAllFaculties
+// @Description	Получить список всех факультетов
+// @Tags			edu
+// @Accept			json
+// @Produce		json
+// @Success		200	{array}		FacultyResponse
+// @Failure		500	{object}	response.APIError
+// @Router			/edu/faculties [get]
 func (h *Handler) GetAllFaculties(c *gin.Context) {
 	faculties, err := h.service.GetAllFaculties(c.Request.Context())
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
 	c.JSON(http.StatusOK, EntitiesToFacultiesResponse(faculties))
 }
 
+// @Summary		GetProgramsByFacultyId
+// @Description	Получить всех программ факультета
+// @Tags			edu
+// @Accept			json
+// @Produce		json
+// @Param			faculty_id	path		string	true	"faculty ID"
+// @Success		200			{array}		ProgramResponse
+// @Failure		400			{object}	response.APIError
+// @Failure		500			{object}	response.APIError
+// @Router			/edu/faculties/{faculty_id}/programs [get]
 func (h *Handler) GetProgramsByFacultyId(c *gin.Context) {
 	facultyID := c.Param("faculty_id")
 
 	parseUint, err := strconv.ParseUint(facultyID, 10, 64)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 		return
 	}
 
 	programs, err := h.service.GetAllProgramsByFacultyId(c.Request.Context(), parseUint)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 

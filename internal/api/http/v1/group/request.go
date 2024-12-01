@@ -7,8 +7,8 @@ import (
 )
 
 type CreateGroupRequest struct {
-	FacultyID uint64 `json:"faculty_id" binding:"required"`
-	ProgramID uint64 `json:"program_id" binding:"required"`
+	FacultyID uint64 `json:"faculty_id" binding:"required,gte=1"`
+	ProgramID uint64 `json:"program_id" binding:"required,gte=1"`
 	ShortName string `json:"short_name" binding:"required,min=4,max=12"`
 }
 
@@ -16,8 +16,8 @@ type SubjectRequest struct {
 	Name       string `json:"name" binding:"required"`
 	Room       string `json:"room" binding:"required"`
 	Teacher    string `json:"teacher" binding:"required"`
-	TypeID     uint64 `json:"type_id" binding:"required"`
-	BuildingID uint64 `json:"building_id" binding:"required"`
+	TypeID     uint64 `json:"type_id" binding:"required,gte=1"`
+	BuildingID uint64 `json:"building_id" binding:"required,gte=1"`
 	StartTime  string `json:"start_time" binding:"required"`
 	EndTime    string `json:"end_time" binding:"required"`
 }

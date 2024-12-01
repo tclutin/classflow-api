@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/auth/login": {
             "post": {
-                "description": "Authenticate a user and return access and refresh tokens",
+                "description": "Аутентификация админ пользователя",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,11 +27,11 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Log in to the system",
+                "summary": "LogIn",
                 "parameters": [
                     {
-                        "description": "User login credentials",
-                        "name": "body",
+                        "description": "Аутентификация пользователя",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -69,7 +69,7 @@ const docTemplate = `{
         },
         "/auth/signup": {
             "post": {
-                "description": "Create a new user account with email and password",
+                "description": "Создание нового админ пользователя",
                 "consumes": [
                     "application/json"
                 ],
@@ -79,11 +79,11 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Register a new account",
+                "summary": "SignUp",
                 "parameters": [
                     {
-                        "description": "Register new account",
-                        "name": "body",
+                        "description": "Создать пользователя",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -121,7 +121,7 @@ const docTemplate = `{
         },
         "/auth/telegram/login": {
             "post": {
-                "description": "Log in to an existing account using Telegram Chat ID",
+                "description": "Аутентификация студента",
                 "consumes": [
                     "application/json"
                 ],
@@ -131,11 +131,11 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Log in with Telegram",
+                "summary": "LogIn with telegram chat id",
                 "parameters": [
                     {
-                        "description": "Log in using Telegram Chat ID",
-                        "name": "body",
+                        "description": "Аутентификация студента",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -167,7 +167,7 @@ const docTemplate = `{
         },
         "/auth/telegram/signup": {
             "post": {
-                "description": "Create a new user account with Telegram Chat ID and Fullname",
+                "description": "Создание студента с telegram chat id",
                 "consumes": [
                     "application/json"
                 ],
@@ -177,11 +177,11 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Register a new account with Telegram",
+                "summary": "SignUp with telegram chat id",
                 "parameters": [
                     {
-                        "description": "Register new account with Telegram",
-                        "name": "body",
+                        "description": "Создать студента",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -221,10 +221,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get the details of the currently authenticated user",
+                "description": "Получение информации о пользователе",
                 "consumes": [
                     "application/json"
                 ],
@@ -234,7 +234,7 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Get user details",
+                "summary": "Who",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -250,6 +250,546 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/edu/buildings": {
+            "get": {
+                "description": "Получить список корпусов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "edu"
+                ],
+                "summary": "GetAllBuildings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/edu.BuildingResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/edu/faculties": {
+            "get": {
+                "description": "Получить список всех факультетов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "edu"
+                ],
+                "summary": "GetAllFaculties",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/edu.FacultyResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/edu/faculties/{faculty_id}/programs": {
+            "get": {
+                "description": "Получить всех программ факультета",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "edu"
+                ],
+                "summary": "GetProgramsByFacultyId",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "faculty ID",
+                        "name": "faculty_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/edu.ProgramResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/edu/types_of_subject": {
+            "get": {
+                "description": "Получить список типов всех предметов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "edu"
+                ],
+                "summary": "GetAllTypesOfSubject",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/edu.TypeOfSubjectResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups": {
+            "get": {
+                "description": "Получить список групп",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "GetAllGroupsSummary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Faculty name",
+                        "name": "faculty",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Program name",
+                        "name": "program",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/group.SummaryGroupResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Создать группу",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create",
+                "parameters": [
+                    {
+                        "description": "Create a new group",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/group.CreateGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/leave": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Покинуть группу",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "LeaveFromGroup",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/me": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить текущую группу",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "GetCurrentGroup",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/group.DetailsGroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/{group_id}/join": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Присоединиться к группе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "JoinToGroup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "group_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/{group_id}/schedule": {
+            "get": {
+                "description": "Получить расписание",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "GetScheduleByGroupId",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "group_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Even of week",
+                        "name": "week_even",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/group.DetailsScheduleResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Загрузить расписание",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "UploadSchedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group ID",
+                        "name": "group_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Загрузить расписание",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/group.UploadScheduleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIError"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/response.APIError"
                         }
@@ -367,6 +907,256 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "edu.BuildingResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "building_id": {
+                    "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "edu.FacultyResponse": {
+            "type": "object",
+            "properties": {
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "edu.ProgramResponse": {
+            "type": "object",
+            "properties": {
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "edu.TypeOfSubjectResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type_of_subject_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "group.CreateGroupRequest": {
+            "type": "object",
+            "required": [
+                "faculty_id",
+                "program_id",
+                "short_name"
+            ],
+            "properties": {
+                "faculty_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "program_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "short_name": {
+                    "type": "string",
+                    "maxLength": 12,
+                    "minLength": 4
+                }
+            }
+        },
+        "group.DaysRequest": {
+            "type": "object",
+            "required": [
+                "day_number",
+                "subjects"
+            ],
+            "properties": {
+                "day_number": {
+                    "type": "integer"
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/group.SubjectRequest"
+                    }
+                }
+            }
+        },
+        "group.DetailsGroupResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "exists_schedule": {
+                    "type": "boolean"
+                },
+                "faculty": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "leader_id": {
+                    "type": "integer"
+                },
+                "number_of_people": {
+                    "type": "integer"
+                },
+                "program": {
+                    "type": "string"
+                },
+                "short_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "group.DetailsScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "building": {
+                    "$ref": "#/definitions/edu.BuildingResponse"
+                },
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "is_even": {
+                    "type": "boolean"
+                },
+                "room": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "group.SubjectRequest": {
+            "type": "object",
+            "required": [
+                "building_id",
+                "end_time",
+                "name",
+                "room",
+                "start_time",
+                "teacher",
+                "type_id"
+            ],
+            "properties": {
+                "building_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "room": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "teacher": {
+                    "type": "string"
+                },
+                "type_id": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "group.SummaryGroupResponse": {
+            "type": "object",
+            "properties": {
+                "exists_schedule": {
+                    "type": "boolean"
+                },
+                "faculty": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "number_of_people": {
+                    "type": "integer"
+                },
+                "program": {
+                    "type": "string"
+                },
+                "short_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "group.UploadScheduleRequest": {
+            "type": "object",
+            "required": [
+                "weeks"
+            ],
+            "properties": {
+                "weeks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/group.WeekRequest"
+                    }
+                }
+            }
+        },
+        "group.WeekRequest": {
+            "type": "object",
+            "required": [
+                "days",
+                "is_even"
+            ],
+            "properties": {
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/group.DaysRequest"
+                    }
+                },
+                "is_even": {
+                    "type": "boolean"
                 }
             }
         },

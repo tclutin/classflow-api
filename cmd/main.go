@@ -10,12 +10,13 @@ import (
 //	@version		1.0
 //	@description	AntonioKrasava
 
-//	@host						localhost:8080
-//	@BasePath					/api/v1
-// @securityDefinitions.apikey  ApiKeyAuth
-// @in                         header
-// @name                       Authorization
-// @description                Use "Bearer <token>" to authenticate
+//	@host		localhost:8080
+//	@BasePath	/api/v1
+
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Use "Bearer <token>" to authenticate
 
 func main() {
 

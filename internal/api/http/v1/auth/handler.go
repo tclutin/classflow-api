@@ -41,18 +41,17 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	}
 }
 
-// SignUpWithTelegram godoc
-// @Summary      Register a new account with Telegram
-// @Description  Create a new user account with Telegram Chat ID and Fullname
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        body  body     SignUpWithTelegramRequest  true  "Register new account with Telegram"
-// @Success      201  {object}  TokenResponse
-// @Failure      400  {object}  response.APIError
-// @Failure      409  {object}  response.APIError
-// @Failure      500  {object}  response.APIError
-// @Router       /auth/telegram/signup [post]
+// @Summary		SignUp with telegram chat id
+// @Description	Создание студента с telegram chat id
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			input	body		SignUpWithTelegramRequest	true	"Создать студента"
+// @Success		201		{object}	TokenResponse
+// @Failure		400		{object}	response.APIError
+// @Failure		409		{object}	response.APIError
+// @Failure		500		{object}	response.APIError
+// @Router			/auth/telegram/signup [post]
 func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 	var request SignUpWithTelegramRequest
 
@@ -82,17 +81,16 @@ func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 	})
 }
 
-// LogInWithTelegram godoc
-// @Summary      Log in with Telegram
-// @Description  Log in to an existing account using Telegram Chat ID
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        body  body     LogInWithTelegramRequest  true  "Log in using Telegram Chat ID"
-// @Success      200  {object}  TokenResponse
-// @Failure      400  {object}  response.APIError
-// @Failure      500  {object}  response.APIError
-// @Router       /auth/telegram/login [post]
+// @Summary		LogIn with telegram chat id
+// @Description	Аутентификация студента
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			input	body		LogInWithTelegramRequest	true	"Аутентификация студента"
+// @Success		200		{object}	TokenResponse
+// @Failure		400		{object}	response.APIError
+// @Failure		500		{object}	response.APIError
+// @Router			/auth/telegram/login [post]
 func (h *Handler) LogInWithTelegram(c *gin.Context) {
 	var request LogInWithTelegramRequest
 
@@ -121,18 +119,17 @@ func (h *Handler) LogInWithTelegram(c *gin.Context) {
 	})
 }
 
-// SignUp godoc
-// @Summary      Register a new account
-// @Description  Create a new user account with email and password
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        body  body     SignUpRequest  true  "Register new account"
-// @Success      201  {object}  TokenResponse
-// @Failure      400  {object}  response.APIError
-// @Failure      409  {object}  response.APIError
-// @Failure      500  {object}  response.APIError
-// @Router       /auth/signup [post]
+// @Summary		SignUp
+// @Description	Создание нового админ пользователя
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			input	body		SignUpRequest	true	"Создать пользователя"
+// @Success		201		{object}	TokenResponse
+// @Failure		400		{object}	response.APIError
+// @Failure		409		{object}	response.APIError
+// @Failure		500		{object}	response.APIError
+// @Router			/auth/signup [post]
 func (h *Handler) SignUp(c *gin.Context) {
 	var request SignUpRequest
 
@@ -163,18 +160,17 @@ func (h *Handler) SignUp(c *gin.Context) {
 	})
 }
 
-// LogIn godoc
-// @Summary      Log in to the system
-// @Description  Authenticate a user and return access and refresh tokens
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        body  body     LogInRequest  true  "User login credentials"
-// @Success      200  {object}  TokenResponse
-// @Failure      400  {object}  response.APIError
-// @Failure      404  {object}  response.APIError
-// @Failure      500  {object}  response.APIError
-// @Router       /auth/login [post]
+// @Summary		LogIn
+// @Description	Аутентификация админ пользователя
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			input	body		LogInRequest	true	"Аутентификация пользователя"
+// @Success		200		{object}	TokenResponse
+// @Failure		400		{object}	response.APIError
+// @Failure		404		{object}	response.APIError
+// @Failure		500		{object}	response.APIError
+// @Router			/auth/login [post]
 func (h *Handler) LogIn(c *gin.Context) {
 	var request LogInRequest
 
@@ -209,18 +205,17 @@ func (h *Handler) LogIn(c *gin.Context) {
 	})
 }
 
-// Who godoc
-// @Summary      Get user details
-// @Description  Get the details of the currently authenticated user
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200  {object}  UserDetailsResponse
-// @Failure      401  {object}  response.APIError
-// @Failure      404  {object}  response.APIError
-// @Failure      500  {object}  response.APIError
-// @Router       /auth/who [get]
+// @Security		ApiKeyAuth
+// @Summary		Who
+// @Description	Получение информации о пользователе
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	UserDetailsResponse
+// @Failure		401	{object}	response.APIError
+// @Failure		404	{object}	response.APIError
+// @Failure		500	{object}	response.APIError
+// @Router			/auth/who [get]
 func (h *Handler) Who(c *gin.Context) {
 	value, ok := c.Get("userID")
 	if !ok {

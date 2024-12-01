@@ -72,6 +72,174 @@ definitions:
       user_id:
         type: integer
     type: object
+  edu.BuildingResponse:
+    properties:
+      address:
+        type: string
+      building_id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+    type: object
+  edu.FacultyResponse:
+    properties:
+      faculty_id:
+        type: integer
+      name:
+        type: string
+    type: object
+  edu.ProgramResponse:
+    properties:
+      faculty_id:
+        type: integer
+      name:
+        type: string
+      program_id:
+        type: integer
+    type: object
+  edu.TypeOfSubjectResponse:
+    properties:
+      name:
+        type: string
+      type_of_subject_id:
+        type: integer
+    type: object
+  group.CreateGroupRequest:
+    properties:
+      faculty_id:
+        minimum: 1
+        type: integer
+      program_id:
+        minimum: 1
+        type: integer
+      short_name:
+        maxLength: 12
+        minLength: 4
+        type: string
+    required:
+    - faculty_id
+    - program_id
+    - short_name
+    type: object
+  group.DaysRequest:
+    properties:
+      day_number:
+        type: integer
+      subjects:
+        items:
+          $ref: '#/definitions/group.SubjectRequest'
+        type: array
+    required:
+    - day_number
+    - subjects
+    type: object
+  group.DetailsGroupResponse:
+    properties:
+      created_at:
+        type: string
+      exists_schedule:
+        type: boolean
+      faculty:
+        type: string
+      group_id:
+        type: integer
+      leader_id:
+        type: integer
+      number_of_people:
+        type: integer
+      program:
+        type: string
+      short_name:
+        type: string
+    type: object
+  group.DetailsScheduleResponse:
+    properties:
+      building:
+        $ref: '#/definitions/edu.BuildingResponse'
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      is_even:
+        type: boolean
+      room:
+        type: string
+      start_time:
+        type: string
+      subject_name:
+        type: string
+      teacher:
+        type: string
+      type:
+        type: string
+    type: object
+  group.SubjectRequest:
+    properties:
+      building_id:
+        minimum: 1
+        type: integer
+      end_time:
+        type: string
+      name:
+        type: string
+      room:
+        type: string
+      start_time:
+        type: string
+      teacher:
+        type: string
+      type_id:
+        minimum: 1
+        type: integer
+    required:
+    - building_id
+    - end_time
+    - name
+    - room
+    - start_time
+    - teacher
+    - type_id
+    type: object
+  group.SummaryGroupResponse:
+    properties:
+      exists_schedule:
+        type: boolean
+      faculty:
+        type: string
+      group_id:
+        type: integer
+      number_of_people:
+        type: integer
+      program:
+        type: string
+      short_name:
+        type: string
+    type: object
+  group.UploadScheduleRequest:
+    properties:
+      weeks:
+        items:
+          $ref: '#/definitions/group.WeekRequest'
+        type: array
+    required:
+    - weeks
+    type: object
+  group.WeekRequest:
+    properties:
+      days:
+        items:
+          $ref: '#/definitions/group.DaysRequest'
+        type: array
+      is_even:
+        type: boolean
+    required:
+    - days
+    - is_even
+    type: object
   response.APIError:
     properties:
       error:
@@ -88,11 +256,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticate a user and return access and refresh tokens
+      description: Аутентификация админ пользователя
       parameters:
-      - description: User login credentials
+      - description: Аутентификация пользователя
         in: body
-        name: body
+        name: input
         required: true
         schema:
           $ref: '#/definitions/auth.LogInRequest'
@@ -115,18 +283,18 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
-      summary: Log in to the system
+      summary: LogIn
       tags:
       - auth
   /auth/signup:
     post:
       consumes:
       - application/json
-      description: Create a new user account with email and password
+      description: Создание нового админ пользователя
       parameters:
-      - description: Register new account
+      - description: Создать пользователя
         in: body
-        name: body
+        name: input
         required: true
         schema:
           $ref: '#/definitions/auth.SignUpRequest'
@@ -149,18 +317,18 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
-      summary: Register a new account
+      summary: SignUp
       tags:
       - auth
   /auth/telegram/login:
     post:
       consumes:
       - application/json
-      description: Log in to an existing account using Telegram Chat ID
+      description: Аутентификация студента
       parameters:
-      - description: Log in using Telegram Chat ID
+      - description: Аутентификация студента
         in: body
-        name: body
+        name: input
         required: true
         schema:
           $ref: '#/definitions/auth.LogInWithTelegramRequest'
@@ -179,18 +347,18 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
-      summary: Log in with Telegram
+      summary: LogIn with telegram chat id
       tags:
       - auth
   /auth/telegram/signup:
     post:
       consumes:
       - application/json
-      description: Create a new user account with Telegram Chat ID and Fullname
+      description: Создание студента с telegram chat id
       parameters:
-      - description: Register new account with Telegram
+      - description: Создать студента
         in: body
-        name: body
+        name: input
         required: true
         schema:
           $ref: '#/definitions/auth.SignUpWithTelegramRequest'
@@ -213,14 +381,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
-      summary: Register a new account with Telegram
+      summary: SignUp with telegram chat id
       tags:
       - auth
   /auth/who:
     get:
       consumes:
       - application/json
-      description: Get the details of the currently authenticated user
+      description: Получение информации о пользователе
       produces:
       - application/json
       responses:
@@ -241,10 +409,360 @@ paths:
           schema:
             $ref: '#/definitions/response.APIError'
       security:
-      - BearerAuth: []
-      summary: Get user details
+      - ApiKeyAuth: []
+      summary: Who
       tags:
       - auth
+  /edu/buildings:
+    get:
+      consumes:
+      - application/json
+      description: Получить список корпусов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/edu.BuildingResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      summary: GetAllBuildings
+      tags:
+      - edu
+  /edu/faculties:
+    get:
+      consumes:
+      - application/json
+      description: Получить список всех факультетов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/edu.FacultyResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      summary: GetAllFaculties
+      tags:
+      - edu
+  /edu/faculties/{faculty_id}/programs:
+    get:
+      consumes:
+      - application/json
+      description: Получить всех программ факультета
+      parameters:
+      - description: faculty ID
+        in: path
+        name: faculty_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/edu.ProgramResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      summary: GetProgramsByFacultyId
+      tags:
+      - edu
+  /edu/types_of_subject:
+    get:
+      consumes:
+      - application/json
+      description: Получить список типов всех предметов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/edu.TypeOfSubjectResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      summary: GetAllTypesOfSubject
+      tags:
+      - edu
+  /groups:
+    get:
+      consumes:
+      - application/json
+      description: Получить список групп
+      parameters:
+      - description: Faculty name
+        in: query
+        name: faculty
+        type: string
+      - description: Program name
+        in: query
+        name: program
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/group.SummaryGroupResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      summary: GetAllGroupsSummary
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Создать группу
+      parameters:
+      - description: Create a new group
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/group.CreateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create
+      tags:
+      - groups
+  /groups/{group_id}/join:
+    post:
+      consumes:
+      - application/json
+      description: Присоединиться к группе
+      parameters:
+      - description: Group ID
+        in: path
+        name: group_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
+      summary: JoinToGroup
+      tags:
+      - groups
+  /groups/{group_id}/schedule:
+    get:
+      consumes:
+      - application/json
+      description: Получить расписание
+      parameters:
+      - description: Group ID
+        in: path
+        name: group_id
+        required: true
+        type: string
+      - description: Even of week
+        enum:
+        - "true"
+        - "false"
+        in: query
+        name: week_even
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/group.DetailsScheduleResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      summary: GetScheduleByGroupId
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Загрузить расписание
+      parameters:
+      - description: Group ID
+        in: path
+        name: group_id
+        required: true
+        type: string
+      - description: Загрузить расписание
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/group.UploadScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
+      summary: UploadSchedule
+      tags:
+      - groups
+  /groups/leave:
+    post:
+      consumes:
+      - application/json
+      description: Покинуть группу
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
+      summary: LeaveFromGroup
+      tags:
+      - groups
+  /groups/me:
+    get:
+      consumes:
+      - application/json
+      description: Получить текущую группу
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/group.DetailsGroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
+      summary: GetCurrentGroup
+      tags:
+      - groups
 securityDefinitions:
   ApiKeyAuth:
     description: Use "Bearer <token>" to authenticate
