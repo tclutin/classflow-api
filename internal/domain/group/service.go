@@ -174,7 +174,7 @@ func (s *Service) GetSchedulesByGroupId(ctx context.Context, filter schedule.Fil
 }
 
 // TODO: need tx manager on service layer
-func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error {
+func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID uint64) error {
 	group, err := s.GetById(ctx, groupID)
 	if err != nil {
 		return err

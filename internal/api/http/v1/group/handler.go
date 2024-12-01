@@ -22,7 +22,7 @@ type Service interface {
 
 	JoinToGroup(ctx context.Context, userID, groupID uint64) error
 	LeaveFromGroup(ctx context.Context, userID uint64) error
-	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
+	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID uint64) error
 	GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
@@ -214,14 +214,7 @@ func (h *Handler) UploadSchedule(c *gin.Context) {
 		return
 	}
 
-	userID, ok := c.Get("userID")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "wtf"})
-		return
-	}
-
-	//TODO: need to fix double groupID
-	if err = h.service.UploadSchedule(c.Request.Context(), request.TransformToEntities(groupID), groupID, userID.(uint64)); err != nil {
+	if err = h.service.UploadSchedule(c.Request.Context(), request.TransformToEntities(groupID), groupID); err != nil {
 		if errors.Is(err, domainErr.ErrGroupAlreadyHasSchedule) {
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
