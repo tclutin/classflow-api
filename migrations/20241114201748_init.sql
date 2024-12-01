@@ -83,7 +83,7 @@ INSERT INTO public.faculties (faculty_name) VALUES ('Математически�
 INSERT INTO public.faculties (faculty_name) VALUES ('Другое');
 
 INSERT INTO public.programs (faculty_id, program_name) VALUES (1, 'Программная инженерия');
-INSERT INTO public.programs (faculty_id, program_name) VALUES (1, 'Прикдадная информатика');
+INSERT INTO public.programs (faculty_id, program_name) VALUES (1, 'Прикладная информатика');
 INSERT INTO public.programs (faculty_id, program_name) VALUES (2, 'Прикладная математика');
 INSERT INTO public.programs (faculty_id, program_name) VALUES (3, 'Другое');
 
