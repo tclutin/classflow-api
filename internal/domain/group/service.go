@@ -13,6 +13,7 @@ import (
 )
 
 type UserService interface {
+	Update(ctx context.Context, user user.User) error
 	GetById(ctx context.Context, userID uint64) (user.User, error)
 }
 
@@ -40,8 +41,7 @@ type Repository interface {
 	GetById(ctx context.Context, groupID uint64) (Group, error)
 	GetSummaryGroups(ctx context.Context, filter FilterDTO) ([]SummaryGroupDTO, error)
 	GetByShortName(ctx context.Context, shortname string) (Group, error)
-	GetStudentGroupByUserId(ctx context.Context, userID uint64) (SummaryGroupDTO, error)
-	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]DetailsGroupDTO, error)
+	GetDetailsGroupById(ctx context.Context, groupID uint64) (DetailsGroupDTO, error)
 }
 
 type Service struct {
@@ -111,27 +111,52 @@ func (s *Service) Update(ctx context.Context, group Group) error {
 	return s.repo.Update(ctx, group)
 }
 
-func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
+func (s *Service) GetById(ctx context.Context, groupID uint64) (Group, error) {
+	group, err := s.repo.GetById(ctx, groupID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Group{}, domainErr.ErrGroupNotFound
+		}
+
+		return Group{}, fmt.Errorf("failed to get group: %w", err)
+	}
+
+	return group, nil
+}
+
+func (s *Service) GetByShortName(ctx context.Context, shortname string) (Group, error) {
+	group, err := s.repo.GetByShortName(ctx, shortname)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Group{}, domainErr.ErrGroupNotFound
+		}
+
+		return Group{}, fmt.Errorf("failed to get group: %w", err)
+	}
+
+	return group, nil
+}
+
+func (s *Service) GetCurrentGroupByUserID(ctx context.Context, userID uint64) (DetailsGroupDTO, error) {
 	groupID, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domainErr.ErrMemberNotFound
+			return DetailsGroupDTO{}, domainErr.ErrMemberNotFound
 		}
 	}
 
-	group, err := s.GetById(ctx, groupID)
+	currentGroup, err := s.repo.GetDetailsGroupById(ctx, groupID)
 	if err != nil {
-		return err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return DetailsGroupDTO{}, domainErr.ErrGroupNotFound
+		}
 	}
 
-	//TODO TX manger needs
-	if err = s.memberRepo.Delete(ctx, userID); err != nil {
-		return err
-	}
+	return currentGroup, nil
+}
 
-	group.NumberOfPeople = group.NumberOfPeople - 1
-
-	return s.repo.Update(ctx, group)
+func (s *Service) GetAllGroupsSummary(ctx context.Context, filter FilterDTO) ([]SummaryGroupDTO, error) {
+	return s.repo.GetSummaryGroups(ctx, filter)
 }
 
 func (s *Service) GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
@@ -188,54 +213,7 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 	return nil
 }
 
-func (s *Service) GetByShortName(ctx context.Context, shortname string) (Group, error) {
-	group, err := s.repo.GetByShortName(ctx, shortname)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return Group{}, domainErr.ErrGroupNotFound
-		}
-
-		return Group{}, fmt.Errorf("failed to get group: %w", err)
-	}
-
-	return group, nil
-}
-
-func (s *Service) GetStudentGroupByUserId(ctx context.Context, userID uint64) (SummaryGroupDTO, error) {
-	group, err := s.repo.GetStudentGroupByUserId(ctx, userID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return SummaryGroupDTO{}, domainErr.ErrGroupNotFound
-		}
-
-		return SummaryGroupDTO{}, fmt.Errorf("failed to get student group: %w", err)
-	}
-
-	return group, nil
-}
-
-func (s *Service) GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]DetailsGroupDTO, error) {
-	return s.repo.GetLeaderGroupsByUserId(ctx, userID)
-}
-
-func (s *Service) GetAllGroupsSummary(ctx context.Context, filter FilterDTO) ([]SummaryGroupDTO, error) {
-	return s.repo.GetSummaryGroups(ctx, filter)
-}
-
-func (s *Service) GetById(ctx context.Context, groupID uint64) (Group, error) {
-	group, err := s.repo.GetById(ctx, groupID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return Group{}, domainErr.ErrGroupNotFound
-		}
-
-		return Group{}, fmt.Errorf("failed to get group: %w", err)
-	}
-
-	return group, nil
-}
-
-// TODO: needs tx
+// JoinToGroup TODO: needs tx
 func (s *Service) JoinToGroup(ctx context.Context, userID, groupID uint64) error {
 	_, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
 	if err == nil {
@@ -256,4 +234,40 @@ func (s *Service) JoinToGroup(ctx context.Context, userID, groupID uint64) error
 
 	return s.repo.Update(ctx, group)
 
+}
+
+// LeaveFromGroup TODO: needs tx
+func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
+	groupID, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domainErr.ErrMemberNotFound
+		}
+	}
+
+	group, err := s.GetById(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	usr, err := s.userService.GetById(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if group.LeaderID != nil && usr.UserID == *group.LeaderID {
+		usr.Role = user.Student
+		group.LeaderID = nil
+		if err = s.userService.Update(ctx, usr); err != nil {
+			return err
+		}
+	}
+
+	if err = s.memberRepo.Delete(ctx, userID); err != nil {
+		return err
+	}
+
+	group.NumberOfPeople = group.NumberOfPeople - 1
+
+	return s.repo.Update(ctx, group)
 }

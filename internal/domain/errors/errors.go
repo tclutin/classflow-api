@@ -34,7 +34,7 @@ var (
 	ErrFacultyProgramIdMismatch = errors.New("faculty and program id does not match")
 
 	// ErrAlreadyInGroup GroupService
-	ErrAlreadyInGroup = errors.New("you are already in a group and cannot join another")
+	ErrAlreadyInGroup = errors.New("you are already in a group")
 
 	// ErrGroupAlreadyHasSchedule GroupService
 	ErrGroupAlreadyHasSchedule = errors.New("group already has schedule")

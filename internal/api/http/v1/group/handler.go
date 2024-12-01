@@ -10,15 +10,16 @@ import (
 	"github.com/tclutin/classflow-api/internal/domain/group"
 	"github.com/tclutin/classflow-api/internal/domain/schedule"
 	"github.com/tclutin/classflow-api/internal/domain/user"
+	"github.com/tclutin/classflow-api/pkg/response"
 	"net/http"
 	"strconv"
 )
 
 type Service interface {
 	Create(ctx context.Context, dto group.CreateGroupDTO) (uint64, error)
-	GetStudentGroupByUserId(ctx context.Context, userID uint64) (group.SummaryGroupDTO, error)
-	GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]group.DetailsGroupDTO, error)
 	GetAllGroupsSummary(ctx context.Context, filter group.FilterDTO) ([]group.SummaryGroupDTO, error)
+	GetCurrentGroupByUserID(ctx context.Context, userID uint64) (group.DetailsGroupDTO, error)
+
 	JoinToGroup(ctx context.Context, userID, groupID uint64) error
 	LeaveFromGroup(ctx context.Context, userID uint64) error
 	UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID, userID uint64) error
@@ -37,12 +38,13 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	groupsGroup := router.Group("/groups")
 	{
 		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.Create)
-
 		groupsGroup.GET("", h.GetAllGroupsSummary)
-		groupsGroup.GET("/me", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student, user.Leader), h.GetGroupForCurrentUser)
+		groupsGroup.GET("/me", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student, user.Leader), h.GetCurrentGroup)
+
 		groupsGroup.POST("/:group_id/join", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student), h.JoinToGroup)
-		groupsGroup.POST("/:group_id/schedule", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("leader"), h.UploadSchedule)
-		groupsGroup.POST("/leave", middleware.JWTMiddleware(authService), middleware.RoleMiddleware("student"), h.LeaveFromGroup)
+		groupsGroup.POST("/leave", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student, user.Leader), h.LeaveFromGroup)
+
+		groupsGroup.POST("/:group_id/schedule", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.UploadSchedule)
 		groupsGroup.GET("/:group_id/schedule", h.GetScheduleByGroupId)
 	}
 }
@@ -51,7 +53,7 @@ func (h *Handler) Create(c *gin.Context) {
 	var request CreateGroupRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -63,32 +65,76 @@ func (h *Handler) Create(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domainErr.ErrGroupAlreadyExists) {
-			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusConflict, response.NewAPIError(err.Error()))
 			return
 		}
 
 		if errors.Is(err, domainErr.ErrFacultyProgramIdMismatch) {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 			return
 		}
 
 		if errors.Is(err, domainErr.ErrProgramNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
 
 		if errors.Is(err, domainErr.ErrFacultyNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"group_id": groupID,
 	})
+}
+
+func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
+
+	program := c.DefaultQuery("program", "")
+	faculty := c.DefaultQuery("faculty", "")
+
+	groups, err := h.service.GetAllGroupsSummary(c.Request.Context(), group.FilterDTO{
+		Faculty: faculty,
+		Program: program,
+	})
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, EntitiesToSummaryGroupsResponse(groups))
+}
+
+func (h *Handler) GetCurrentGroup(c *gin.Context) {
+	value, ok := c.Get("userID")
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.NewAPIError("userID not found in context"))
+		return
+	}
+
+	currentGroup, err := h.service.GetCurrentGroupByUserID(c.Request.Context(), value.(uint64))
+	if err != nil {
+		if errors.Is(err, domainErr.ErrGroupNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
+			return
+		}
+
+		if errors.Is(err, domainErr.ErrMemberNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, EntityToDetailsGroupResponse(currentGroup))
 }
 
 func (h *Handler) LeaveFromGroup(c *gin.Context) {
@@ -120,29 +166,29 @@ func (h *Handler) LeaveFromGroup(c *gin.Context) {
 func (h *Handler) JoinToGroup(c *gin.Context) {
 	groupID, err := strconv.ParseUint(c.Param("group_id"), 10, 64)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 		return
 	}
 
 	userID, ok := c.Get("userID")
 	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "wtf"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError("userID not found in context"))
 		return
 	}
 
 	err = h.service.JoinToGroup(c.Request.Context(), userID.(uint64), groupID)
 	if err != nil {
 		if errors.Is(err, domainErr.ErrGroupNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
 
 		if errors.Is(err, domainErr.ErrAlreadyInGroup) {
-			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusConflict, response.NewAPIError(err.Error()))
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -235,70 +281,4 @@ func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, EntitiesToSchedulesResponse(schedules))
-}
-
-func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
-
-	program := c.DefaultQuery("program", "")
-	faculty := c.DefaultQuery("faculty", "")
-
-	groups, err := h.service.GetAllGroupsSummary(c.Request.Context(), group.FilterDTO{
-		Faculty: faculty,
-		Program: program,
-	})
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, EntitiesToSummaryGroupsResponse(groups))
-}
-
-func (h *Handler) GetGroupForCurrentUser(c *gin.Context) {
-	value, ok := c.Get("userID")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	role, ok := c.Get("role")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	if role == "student" {
-		studentGroup, err := h.service.GetStudentGroupByUserId(c.Request.Context(), value.(uint64))
-		if err != nil {
-			if errors.Is(err, domainErr.ErrGroupNotFound) {
-				c.AbortWithStatusJSON(http.StatusNotFound, nil)
-				return
-			}
-
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, SummaryGroupResponse{
-			GroupID:        studentGroup.GroupID,
-			Faculty:        studentGroup.Faculty,
-			Program:        studentGroup.Program,
-			ShortName:      studentGroup.ShortName,
-			NumberOfPeople: studentGroup.NumberOfPeople,
-			ExistsSchedule: studentGroup.ExistsSchedule,
-		})
-		return
-	}
-
-	if role == "leader" {
-		leaderGroups, err := h.service.GetLeaderGroupsByUserId(c.Request.Context(), value.(uint64))
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, EntitiesToDetailsGroupsResponse(leaderGroups))
-		return
-	}
-
-	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid role"})
 }

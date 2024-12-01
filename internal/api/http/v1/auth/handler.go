@@ -57,7 +57,7 @@ func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 	var request SignUpWithTelegramRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -68,11 +68,11 @@ func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domainErr.ErrUserAlreadyExists) {
-			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusConflict, response.NewAPIError(err.Error()))
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -97,7 +97,7 @@ func (h *Handler) LogInWithTelegram(c *gin.Context) {
 	var request LogInWithTelegramRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -107,11 +107,11 @@ func (h *Handler) LogInWithTelegram(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domainErr.ErrUserNotFound) {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -137,7 +137,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 	var request SignUpRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, response.APIError{Error: err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -148,12 +148,12 @@ func (h *Handler) SignUp(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domainErr.ErrUserAlreadyExists) {
-			c.AbortWithStatusJSON(http.StatusConflict, response.APIError{Error: err.Error()})
+			c.AbortWithStatusJSON(http.StatusConflict, response.NewAPIError(err.Error()))
 			return
 
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.APIError{Error: err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -179,7 +179,7 @@ func (h *Handler) LogIn(c *gin.Context) {
 	var request LogInRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, response.APIError{Error: err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -190,16 +190,16 @@ func (h *Handler) LogIn(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domainErr.ErrWrongPassword) {
-			c.AbortWithStatusJSON(http.StatusBadRequest, response.APIError{Error: err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
 			return
 		}
 
 		if errors.Is(err, domainErr.ErrUserNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, response.APIError{Error: err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.APIError{Error: err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 
@@ -224,17 +224,17 @@ func (h *Handler) LogIn(c *gin.Context) {
 func (h *Handler) Who(c *gin.Context) {
 	value, ok := c.Get("userID")
 	if !ok {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, response.APIError{Error: "user id not found in context"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.NewAPIError("userID not found in context"))
 		return
 	}
 
 	who, err := h.service.Who(c.Request.Context(), value.(uint64))
 	if err != nil {
 		if errors.Is(err, domainErr.ErrUserNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, response.APIError{Error: err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.APIError{Error: err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}
 

@@ -54,7 +54,8 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 			number_of_people = $5,
 			exists_schedule = $6,
 			created_at = $7
-		WHERE group_id = $8
+		WHERE
+		    group_id = $8
 		`
 
 	_, err := g.pool.Exec(
@@ -72,7 +73,7 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 	return err
 }
 
-// TODO: needs sql builder/string builder
+// GetSummaryGroups TODO: needs sql builder/string builder
 func (g *GroupRepository) GetSummaryGroups(ctx context.Context, filter group.FilterDTO) ([]group.SummaryGroupDTO, error) {
 	sql := `
 		SELECT
@@ -140,48 +141,9 @@ func (g *GroupRepository) GetSummaryGroups(ctx context.Context, filter group.Fil
 	return groups, nil
 }
 
-func (g *GroupRepository) GetStudentGroupByUserId(ctx context.Context, userID uint64) (group.SummaryGroupDTO, error) {
+func (g *GroupRepository) GetDetailsGroupById(ctx context.Context, groupID uint64) (group.DetailsGroupDTO, error) {
 	sql := `
-		SELECT
-		    g.group_id,
-			f.faculty_name,
-			p.program_name,
-			g.short_name,
-			g.number_of_people,
-			g.exists_schedule
-		FROM
-			public.members as m
-		INNER JOIN
-			public.groups as g ON g.group_id = m.group_id
-		INNER JOIN
-			public.faculties as f ON f.faculty_id = g.faculty_id
-		INNER JOIN
-			public.programs as p ON p.program_id = g.program_id
-		WHERE
-			user_id = $1
-		`
-
-	row := g.pool.QueryRow(ctx, sql, userID)
-
-	var group group.SummaryGroupDTO
-	err := row.Scan(
-		&group.GroupID,
-		&group.Faculty,
-		&group.Program,
-		&group.ShortName,
-		&group.NumberOfPeople,
-		&group.ExistsSchedule)
-
-	if err != nil {
-		return group, err
-	}
-
-	return group, nil
-}
-
-func (g *GroupRepository) GetLeaderGroupsByUserId(ctx context.Context, userID uint64) ([]group.DetailsGroupDTO, error) {
-	sql := `
-		SELECT DISTINCT
+		SELECT 
 			g.group_id,
 			g.leader_id,
 			f.faculty_name,
@@ -191,45 +153,33 @@ func (g *GroupRepository) GetLeaderGroupsByUserId(ctx context.Context, userID ui
 			g.exists_schedule,
 			g.created_at
 		FROM
-			public.members as m
+			public.groups AS g
 		INNER JOIN
-			public.groups as g ON g.leader_id = m.user_id
+			public.programs AS p ON g.program_id = p.program_id
 		INNER JOIN
-			public.faculties as f ON f.faculty_id = g.faculty_id
-		INNER JOIN
-			public.programs as p ON p.program_id = g.program_id
+			public.faculties AS f ON g.faculty_id = f.faculty_id
 		WHERE
-			user_id = $1
+			group_id = $1
 		`
 
-	rows, err := g.pool.Query(ctx, sql, userID)
+	row := g.pool.QueryRow(ctx, sql, groupID)
+
+	var group group.DetailsGroupDTO
+	err := row.Scan(
+		&group.GroupID,
+		&group.LeaderID,
+		&group.Faculty,
+		&group.Program,
+		&group.ShortName,
+		&group.NumberOfPeople,
+		&group.ExistsSchedule,
+		&group.CreatedAt)
+
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var groups []group.DetailsGroupDTO
-
-	for rows.Next() {
-		var group group.DetailsGroupDTO
-		err = rows.Scan(
-			&group.GroupID,
-			&group.LeaderID,
-			&group.Faculty,
-			&group.Program,
-			&group.ShortName,
-			&group.NumberOfPeople,
-			&group.ExistsSchedule,
-			&group.CreatedAt)
-
-		if err != nil {
-			return nil, err
-		}
-
-		groups = append(groups, group)
+		return group, err
 	}
 
-	return groups, nil
+	return group, nil
 }
 
 func (g *GroupRepository) GetByShortName(ctx context.Context, shortname string) (group.Group, error) {

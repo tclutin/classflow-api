@@ -10,7 +10,7 @@ type CreateGroupDTO struct {
 
 type DetailsGroupDTO struct {
 	GroupID        uint64
-	LeaderID       uint64
+	LeaderID       *uint64
 	Faculty        string
 	Program        string
 	ShortName      string

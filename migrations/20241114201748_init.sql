@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.groups (
 
 CREATE TABLE IF NOT EXISTS public.members (
     member_id BIGSERIAL PRIMARY KEY,
-    user_id   BIGINT NOT NULL,
+    user_id   BIGINT NOT NULL UNIQUE,
     group_id  BIGINT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES public.users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (group_id) REFERENCES public.groups (group_id) ON DELETE CASCADE

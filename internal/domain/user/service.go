@@ -9,10 +9,11 @@ import (
 )
 
 type Repository interface {
+	Create(ctx context.Context, user User) (uint64, error)
+	Update(ctx context.Context, user User) error
 	GetById(ctx context.Context, userID uint64) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
 	GetByTelegramChatId(ctx context.Context, telegramChatID int64) (User, error)
-	Create(ctx context.Context, user User) (uint64, error)
 }
 
 type Service struct {
@@ -23,6 +24,19 @@ func NewService(repo Repository) *Service {
 	return &Service{
 		repo: repo,
 	}
+}
+
+func (s *Service) Create(ctx context.Context, user User) (uint64, error) {
+	userID, err := s.repo.Create(ctx, user)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return userID, nil
+}
+
+func (s *Service) Update(ctx context.Context, user User) error {
+	return s.repo.Update(ctx, user)
 }
 
 func (s *Service) GetByTelegramChatId(ctx context.Context, telegramChatID int64) (User, error) {
@@ -60,13 +74,4 @@ func (s *Service) GetById(ctx context.Context, userID uint64) (User, error) {
 	}
 
 	return user, nil
-}
-
-func (s *Service) Create(ctx context.Context, user User) (uint64, error) {
-	userID, err := s.repo.Create(ctx, user)
-	if err != nil {
-		return 0, fmt.Errorf("failed to create user: %w", err)
-	}
-
-	return userID, nil
 }
