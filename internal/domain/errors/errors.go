@@ -39,12 +39,6 @@ var (
 	// ErrGroupAlreadyHasSchedule GroupService
 	ErrGroupAlreadyHasSchedule = errors.New("group already has schedule")
 
-	//ErrThisGroupDoesNotBelongToYou GroupService
-	ErrThisGroupDoesNotBelongToYou = errors.New("this group does not belong to you")
-
-	//ErrYouArentMember GroupService
-	ErrYouArentMember = errors.New("you are not a member of this group")
-
 	//ErrMemberNotFound GroupService
 	ErrMemberNotFound = errors.New("member not found")
 )

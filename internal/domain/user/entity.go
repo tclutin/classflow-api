@@ -16,7 +16,9 @@ type User struct {
 	PasswordHash         *string
 	Role                 string
 	FullName             *string
+	TelegramUsername     *string
 	TelegramChatID       *int64
+	NotificationDelay    *string
 	NotificationsEnabled *bool
 	CreatedAt            time.Time
 }

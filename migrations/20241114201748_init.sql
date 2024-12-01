@@ -33,7 +33,9 @@ CREATE TABLE IF NOT EXISTS public.users (
     password_hash TEXT,
     role TEXT NOT NULL CHECK (role IN ('student', 'leader', 'admin')),
     fullname TEXT,
+    telegram_username TEXT,
     telegram_chat BIGINT,
+    notification_delay TEXT,
     notifications_enabled BOOLEAN,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp
 );

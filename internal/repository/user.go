@@ -17,8 +17,8 @@ func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 }
 
 func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, error) {
-	sql := `INSERT INTO public.users (email, password_hash, role, fullname, telegram_chat, notifications_enabled, created_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
+	sql := `INSERT INTO public.users (email, password_hash, role, fullname, telegram_username, telegram_chat, notification_delay, notifications_enabled, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			RETURNING user_id`
 
 	row := u.pool.QueryRow(
@@ -28,7 +28,9 @@ func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, er
 		user.PasswordHash,
 		user.Role,
 		user.FullName,
+		user.TelegramUsername,
 		user.TelegramChatID,
+		user.NotificationDelay,
 		user.NotificationsEnabled,
 		user.CreatedAt)
 
@@ -50,10 +52,12 @@ func (u *UserRepository) Update(ctx context.Context, user user.User) error {
 		    password_hash = $2,
 		    role = $3,
 		    fullname = $4,
-		    telegram_chat = $5,
-		    notifications_enabled = $6
+		    telegram_username = $5
+		    telegram_chat = $6,
+		    notification_delay = $7
+		    notifications_enabled = $8
 		WHERE
-		    user_id = $7
+		    user_id = $9
 	`
 
 	_, err := u.pool.Exec(
@@ -63,7 +67,9 @@ func (u *UserRepository) Update(ctx context.Context, user user.User) error {
 		user.PasswordHash,
 		user.Role,
 		user.FullName,
+		user.TelegramUsername,
 		user.TelegramChatID,
+		user.NotificationsEnabled,
 		user.NotificationsEnabled,
 		user.UserID)
 
@@ -82,7 +88,9 @@ func (u *UserRepository) GetById(ctx context.Context, userID uint64) (user.User,
 		&usr.PasswordHash,
 		&usr.Role,
 		&usr.FullName,
+		&usr.TelegramUsername,
 		&usr.TelegramChatID,
+		&usr.NotificationDelay,
 		&usr.NotificationsEnabled,
 		&usr.CreatedAt,
 	)
@@ -106,7 +114,9 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 		&usr.PasswordHash,
 		&usr.Role,
 		&usr.FullName,
+		&usr.TelegramUsername,
 		&usr.TelegramChatID,
+		&usr.NotificationDelay,
 		&usr.NotificationsEnabled,
 		&usr.CreatedAt,
 	)
@@ -130,7 +140,9 @@ func (u *UserRepository) GetByTelegramChatId(ctx context.Context, telegramChatID
 		&usr.PasswordHash,
 		&usr.Role,
 		&usr.FullName,
+		&usr.TelegramUsername,
 		&usr.TelegramChatID,
+		&usr.NotificationDelay,
 		&usr.NotificationsEnabled,
 		&usr.CreatedAt)
 
