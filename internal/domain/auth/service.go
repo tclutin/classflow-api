@@ -55,6 +55,8 @@ func (s *Service) SignUp(ctx context.Context, dto SignUpDTO) (TokenDTO, error) {
 		Role:                 user.Admin,
 		FullName:             nil,
 		TelegramChatID:       nil,
+		TelegramUsername:     nil,
+		NotificationDelay:    nil,
 		NotificationsEnabled: nil,
 		CreatedAt:            time.Now(),
 	}

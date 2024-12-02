@@ -39,6 +39,19 @@ func (s *Service) Update(ctx context.Context, user User) error {
 	return s.repo.Update(ctx, user)
 }
 
+func (s *Service) UpdatePartial(ctx context.Context, dto PartialUpdateUserDTO, userID uint64) error {
+	user, err := s.GetById(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	user.FullName = dto.FullName
+	user.NotificationDelay = dto.NotificationDelay
+	user.NotificationsEnabled = dto.NotificationsEnabled
+
+	return s.Update(ctx, user)
+}
+
 func (s *Service) GetByTelegramChatId(ctx context.Context, telegramChatID int64) (User, error) {
 	user, err := s.repo.GetByTelegramChatId(ctx, telegramChatID)
 	if err != nil {

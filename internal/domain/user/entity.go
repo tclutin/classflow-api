@@ -18,7 +18,7 @@ type User struct {
 	FullName             *string
 	TelegramUsername     *string
 	TelegramChatID       *int64
-	NotificationDelay    *string
+	NotificationDelay    *int64
 	NotificationsEnabled *bool
 	CreatedAt            time.Time
 }

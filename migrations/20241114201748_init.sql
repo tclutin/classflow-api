@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     fullname TEXT,
     telegram_username TEXT,
     telegram_chat BIGINT,
-    notification_delay TEXT,
+    notification_delay BIGINT,
     notifications_enabled BOOLEAN,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp
 );
