@@ -45,9 +45,17 @@ func (s *Service) UpdatePartial(ctx context.Context, dto PartialUpdateUserDTO, u
 		return err
 	}
 
-	user.FullName = dto.FullName
-	user.NotificationDelay = dto.NotificationDelay
-	user.NotificationsEnabled = dto.NotificationsEnabled
+	if dto.FullName != nil {
+		user.FullName = dto.FullName
+	}
+
+	if dto.NotificationDelay != nil {
+		user.NotificationDelay = dto.NotificationDelay
+	}
+
+	if dto.NotificationsEnabled != nil {
+		user.NotificationsEnabled = dto.NotificationsEnabled
+	}
 
 	return s.Update(ctx, user)
 }

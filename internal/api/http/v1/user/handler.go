@@ -39,7 +39,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 // @Tags			users
 // @Accept			json
 // @Produce		json
-// @Param			input	body		UpdateUserSettingsRequest	true	"Update a user's account"
+// @Param			input	body		UpdateUserSettingsRequest	false	"Update a user's account"
 // @Success		200			{string}	string
 // @Failure		401	{object}	response.APIError
 // @Failure		404	{object}	response.APIError
