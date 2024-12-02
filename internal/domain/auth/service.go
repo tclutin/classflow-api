@@ -111,7 +111,7 @@ func (s *Service) SignUpWithTelegram(ctx context.Context, dto SignUpWithTelegram
 		PasswordHash:         nil,
 		Role:                 user.Student,
 		FullName:             &dto.Fullname,
-		TelegramUsername:     nil,
+		TelegramUsername:     &dto.TelegramUsername,
 		TelegramChatID:       &dto.TelegramChatID,
 		NotificationDelay:    nil,
 		NotificationsEnabled: &notificationsEnabled,

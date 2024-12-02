@@ -16,8 +16,9 @@ type LogInDTO struct {
 }
 
 type SignUpWithTelegramDTO struct {
-	TelegramChatID int64
-	Fullname       string
+	TelegramChatID   int64
+	TelegramUsername string
+	Fullname         string
 }
 
 type LogInWithTelegramDTO struct {

@@ -17,8 +17,8 @@ func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 }
 
 func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, error) {
-	sql := `INSERT INTO public.users (email, password_hash, role, fullname, telegram_chat, notification_delay, notifications_enabled, created_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	sql := `INSERT INTO public.users (email, password_hash, role, fullname, telegram_username, telegram_chat, notification_delay, notifications_enabled, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			RETURNING user_id`
 
 	row := u.pool.QueryRow(
@@ -28,6 +28,7 @@ func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, er
 		user.PasswordHash,
 		user.Role,
 		user.FullName,
+		user.TelegramUsername,
 		user.TelegramChatID,
 		user.NotificationDelay,
 		user.NotificationsEnabled,

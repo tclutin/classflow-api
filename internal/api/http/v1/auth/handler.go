@@ -61,8 +61,9 @@ func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 	}
 
 	tokens, err := h.service.SignUpWithTelegram(c.Request.Context(), auth.SignUpWithTelegramDTO{
-		TelegramChatID: request.TelegramChatID,
-		Fullname:       request.Fullname,
+		TelegramChatID:   request.TelegramChatID,
+		TelegramUsername: request.TelegramUsername,
+		Fullname:         request.Fullname,
 	})
 
 	if err != nil {
@@ -236,10 +237,11 @@ func (h *Handler) Who(c *gin.Context) {
 	c.JSON(http.StatusOK, UserDetailsResponse{
 		UserID:               who.UserID,
 		Email:                who.Email,
-		PasswordHash:         who.PasswordHash,
 		Role:                 who.Role,
 		FullName:             who.FullName,
+		TelegramUsername:     who.TelegramUsername,
 		TelegramChatID:       who.TelegramChatID,
+		NotificationDelay:    who.NotificationDelay,
 		NotificationsEnabled: who.NotificationsEnabled,
 		CreatedAt:            who.CreatedAt,
 	})
