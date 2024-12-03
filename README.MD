@@ -17,7 +17,10 @@ cd classflow-api
 docker-compose up
 ```
 
-5,Также примените миграции для контейнера с приложением
+5.Также примените миграции для контейнера с приложением
+```bash
+docker ps
+```
 ```bash
 docker exec <name of container with app> goose -dir migrations postgres "postgresql://postgres:postgres@localhost:5432/schedule_backend?sslmode=disable" up 
 ```
