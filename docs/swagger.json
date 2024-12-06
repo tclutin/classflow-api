@@ -402,6 +402,11 @@
         },
         "/groups": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить список групп",
                 "consumes": [
                     "application/json"
@@ -723,6 +728,11 @@
         },
         "/groups/{group_id}/schedule": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить расписание",
                 "consumes": [
                     "application/json"

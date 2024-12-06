@@ -408,6 +408,11 @@ const docTemplate = `{
         },
         "/groups": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить список групп",
                 "consumes": [
                     "application/json"
@@ -729,6 +734,11 @@ const docTemplate = `{
         },
         "/groups/{group_id}/schedule": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить расписание",
                 "consumes": [
                     "application/json"

@@ -552,6 +552,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
       summary: GetAllGroupsSummary
       tags:
       - groups
@@ -707,6 +709,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
       summary: GetScheduleByGroupId
       tags:
       - groups

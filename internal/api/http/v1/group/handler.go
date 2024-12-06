@@ -35,17 +35,17 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
-	groupsGroup := router.Group("/groups")
+	groupsGroup := router.Group("/groups", middleware.JWTMiddleware(authService))
 	{
-		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.Create)
-		groupsGroup.DELETE("/:group_id", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.Delete)
+		groupsGroup.POST("", middleware.RoleMiddleware(user.Admin), h.Create)
+		groupsGroup.DELETE("/:group_id", middleware.RoleMiddleware(user.Admin), h.Delete)
 		groupsGroup.GET("", h.GetAllGroupsSummary)
-		groupsGroup.GET("/me", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student, user.Leader), h.GetCurrentGroup)
+		groupsGroup.GET("/me", middleware.RoleMiddleware(user.Student, user.Leader), h.GetCurrentGroup)
 
-		groupsGroup.POST("/:group_id/join", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student), h.JoinToGroup)
-		groupsGroup.POST("/leave", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student, user.Leader), h.LeaveFromGroup)
+		groupsGroup.POST("/:group_id/join", middleware.RoleMiddleware(user.Student), h.JoinToGroup)
+		groupsGroup.POST("/leave", middleware.RoleMiddleware(user.Student, user.Leader), h.LeaveFromGroup)
 
-		groupsGroup.POST("/:group_id/schedule", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.UploadSchedule)
+		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware(user.Admin), h.UploadSchedule)
 		groupsGroup.GET("/:group_id/schedule", h.GetScheduleByGroupId)
 	}
 }
@@ -138,6 +138,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
+// @Security		ApiKeyAuth
 // @Summary		GetAllGroupsSummary
 // @Description	Получить список групп
 // @Tags			groups
@@ -356,6 +357,7 @@ func (h *Handler) UploadSchedule(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
+// @Security		ApiKeyAuth
 // @Summary		GetScheduleByGroupId
 // @Description	Получить расписание
 // @Tags			groups
