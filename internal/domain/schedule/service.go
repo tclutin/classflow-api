@@ -19,6 +19,10 @@ func (s *Service) Create(ctx context.Context, schedule []Schedule) error {
 	return s.repo.Create(ctx, schedule)
 }
 
+func (s *Service) GetCloseSchedules(ctx context.Context) ([]Schedule, error) {
+	panic("implement me")
+}
+
 func (s *Service) GetSchedulesByGroupId(ctx context.Context, filter FilterDTO, groupID uint64) ([]DetailsScheduleDTO, error) {
 	return s.repo.GetSchedulesByGroupId(ctx, filter, groupID)
 }

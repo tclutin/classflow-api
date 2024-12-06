@@ -24,3 +24,4 @@ docker ps
 ```bash
 docker exec <name of container with app> goose -dir migrations postgres "postgresql://postgres:postgres@localhost:5432/schedule_backend?sslmode=disable" up 
 ```
+

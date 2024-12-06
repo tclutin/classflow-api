@@ -7,10 +7,16 @@ import (
 	"time"
 )
 
+const (
+	dev  string = "local"
+	prod string = "prod"
+)
+
 type Config struct {
-	HTTPServer HTTPServer
-	Postgres   Postgres
-	JWT        JWT
+	Environment string `env:"ENVIRONMENT"`
+	HTTPServer  HTTPServer
+	Postgres    Postgres
+	JWT         JWT
 }
 
 type HTTPServer struct {
@@ -43,4 +49,12 @@ func MustLoad() *Config {
 	}
 
 	return &config
+}
+
+func (c *Config) IsProd() bool {
+	return c.Environment == prod
+}
+
+func (c *Config) IsLocal() bool {
+	return c.Environment == dev
 }
