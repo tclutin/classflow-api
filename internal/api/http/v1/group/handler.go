@@ -131,6 +131,11 @@ func (h *Handler) Delete(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
+
+		if errors.Is(err, domainErr.ErrUserNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
 		return
 	}

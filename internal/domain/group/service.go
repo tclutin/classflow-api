@@ -109,9 +109,22 @@ func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error
 }
 
 func (s *Service) Delete(ctx context.Context, groupID uint64) error {
-	_, err := s.GetById(ctx, groupID)
+	group, err := s.GetById(ctx, groupID)
 	if err != nil {
 		return err
+	}
+
+	if group.LeaderID != nil {
+		usr, err := s.userService.GetById(ctx, *group.LeaderID)
+		if err != nil {
+			return err
+		}
+
+		usr.Role = user.Student
+
+		if err = s.userService.Update(ctx, usr); err != nil {
+			return err
+		}
 	}
 	return s.repo.Delete(ctx, groupID)
 }
