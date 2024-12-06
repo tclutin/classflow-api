@@ -3,6 +3,8 @@ package edu
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/tclutin/classflow-api/internal/api/http/middleware"
+	"github.com/tclutin/classflow-api/internal/domain/auth"
 	"github.com/tclutin/classflow-api/internal/domain/edu"
 	"github.com/tclutin/classflow-api/pkg/response"
 	"net/http"
@@ -24,8 +26,8 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service}
 }
 
-func (h *Handler) Bind(router *gin.RouterGroup) {
-	eduGroup := router.Group("/edu")
+func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
+	eduGroup := router.Group("/edu", middleware.JWTMiddleware(authService))
 	{
 		eduGroup.GET("/buildings", h.GetAllBuildings)
 		eduGroup.GET("/types_of_subject", h.GetAllTypesOfSubject)
@@ -34,6 +36,7 @@ func (h *Handler) Bind(router *gin.RouterGroup) {
 	}
 }
 
+// @Security		ApiKeyAuth
 // @Summary		GetAllBuildings
 // @Description	Получить список корпусов
 // @Tags			edu
@@ -52,6 +55,7 @@ func (h *Handler) GetAllBuildings(c *gin.Context) {
 	c.JSON(http.StatusOK, EntitiesToBuildingsResponse(buildings))
 }
 
+// @Security		ApiKeyAuth
 // @Summary		GetAllTypesOfSubject
 // @Description	Получить список типов всех предметов
 // @Tags			edu
@@ -70,6 +74,7 @@ func (h *Handler) GetAllTypesOfSubject(c *gin.Context) {
 	c.JSON(http.StatusOK, EntitiesToTypesOfSubjectResponse(types))
 }
 
+// @Security		ApiKeyAuth
 // @Summary		GetAllFaculties
 // @Description	Получить список всех факультетов
 // @Tags			edu
@@ -88,6 +93,7 @@ func (h *Handler) GetAllFaculties(c *gin.Context) {
 	c.JSON(http.StatusOK, EntitiesToFacultiesResponse(faculties))
 }
 
+// @Security		ApiKeyAuth
 // @Summary		GetProgramsByFacultyId
 // @Description	Получить всех программ факультета
 // @Tags			edu

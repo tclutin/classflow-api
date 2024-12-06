@@ -265,6 +265,11 @@ const docTemplate = `{
         },
         "/edu/buildings": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить список корпусов",
                 "consumes": [
                     "application/json"
@@ -297,6 +302,11 @@ const docTemplate = `{
         },
         "/edu/faculties": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить список всех факультетов",
                 "consumes": [
                     "application/json"
@@ -329,6 +339,11 @@ const docTemplate = `{
         },
         "/edu/faculties/{faculty_id}/programs": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить всех программ факультета",
                 "consumes": [
                     "application/json"
@@ -376,6 +391,11 @@ const docTemplate = `{
         },
         "/edu/types_of_subject": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Получить список типов всех предметов",
                 "consumes": [
                     "application/json"

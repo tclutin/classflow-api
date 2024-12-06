@@ -449,6 +449,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
       summary: GetAllBuildings
       tags:
       - edu
@@ -470,6 +472,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
       summary: GetAllFaculties
       tags:
       - edu
@@ -501,6 +505,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
       summary: GetProgramsByFacultyId
       tags:
       - edu
@@ -522,6 +528,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.APIError'
+      security:
+      - ApiKeyAuth: []
       summary: GetAllTypesOfSubject
       tags:
       - edu
