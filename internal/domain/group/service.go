@@ -18,12 +18,10 @@ import (
 */
 
 type UserService interface {
-	Update(ctx context.Context, user user.User) error
 	GetById(ctx context.Context, userID uint64) (user.User, error)
 }
 
 type ScheduleService interface {
-	Create(ctx context.Context, schedule []schedule.Schedule) error
 	GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error)
 }
 
@@ -40,12 +38,9 @@ type UserRepository interface {
 
 type ScheduleRepository interface {
 	CreateTx(ctx context.Context, tx pgx.Tx, schedule []schedule.Schedule) error
-	Create(ctx context.Context, schedule []schedule.Schedule) error
 }
 
 type MemberRepository interface {
-	Delete(ctx context.Context, userId uint64) error
-	Create(ctx context.Context, userID uint64, groupId uint64) (uint64, error)
 	DeleteTx(ctx context.Context, tx pgx.Tx, userId uint64) error
 	CreateTx(ctx context.Context, tx pgx.Tx, userID uint64, groupId uint64) (uint64, error)
 	GetGroupIdByUserId(ctx context.Context, userID uint64) (uint64, error)
@@ -271,6 +266,11 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 		}
 
 		_, err = s.eduService.GetFacultyById(ctx, value.BuildingsID)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.eduService.GetBuildingById(ctx, value.BuildingsID)
 		if err != nil {
 			return err
 		}

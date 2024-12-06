@@ -15,48 +15,6 @@ func NewScheduleRepository(pool *pgxpool.Pool) *ScheduleRepository {
 	return &ScheduleRepository{pool}
 }
 
-func (s *ScheduleRepository) Create(ctx context.Context, schedule []schedule.Schedule) error {
-	sql := `
-		INSERT INTO public.schedule
-		(group_id, buildings_id, type_of_subject_id, subject_name, teacher, room, is_even, day_of_week, start_time, end_time, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		`
-
-	tx, err := s.pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-
-	for _, value := range schedule {
-		_, err = tx.Exec(
-			ctx,
-			sql,
-			value.GroupID,
-			value.BuildingsID,
-			value.TypeOfSubjectID,
-			value.SubjectName,
-			value.Teacher,
-			value.Room,
-			value.IsEven,
-			value.DayOfWeek,
-			value.StartTime,
-			value.EndTime,
-			value.CreatedAt)
-
-		if err != nil {
-			return err
-		}
-
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *ScheduleRepository) CreateTx(ctx context.Context, tx pgx.Tx, schedule []schedule.Schedule) error {
 	sql := `
 		INSERT INTO public.schedule

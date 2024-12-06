@@ -74,8 +74,8 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 	return err
 }
 
-func (m *GroupRepository) BeginTx(ctx context.Context) (pgx.Tx, error) {
-	return m.pool.Begin(ctx)
+func (g *GroupRepository) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	return g.pool.Begin(ctx)
 }
 
 func (g *GroupRepository) UpdateTx(ctx context.Context, tx pgx.Tx, group group.Group) error {
@@ -241,30 +241,6 @@ func (g *GroupRepository) GetByShortName(ctx context.Context, shortname string) 
 		&group.ShortName,
 		&group.ExistsSchedule,
 		&group.NumberOfPeople,
-		&group.CreatedAt)
-
-	if err != nil {
-		return group, err
-	}
-
-	return group, nil
-}
-
-func (g *GroupRepository) GetByCode(ctx context.Context, code string) (group.Group, error) {
-	sql := `SELECT * FROM public.groups WHERE code = $1`
-
-	row := g.pool.QueryRow(ctx, sql, code)
-
-	var group group.Group
-
-	err := row.Scan(
-		&group.GroupID,
-		&group.LeaderID,
-		&group.FacultyID,
-		&group.ProgramID,
-		&group.ShortName,
-		&group.NumberOfPeople,
-		&group.ExistsSchedule,
 		&group.CreatedAt)
 
 	if err != nil {
