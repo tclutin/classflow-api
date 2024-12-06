@@ -42,6 +42,14 @@ func (g *GroupRepository) Create(ctx context.Context, group group.Group) (uint64
 	return groupId, nil
 }
 
+func (g *GroupRepository) Delete(ctx context.Context, groupID uint64) error {
+	sql := `DELETE FROM public.groups WHERE group_id = $1`
+
+	_, err := g.pool.Exec(ctx, sql, groupID)
+
+	return err
+}
+
 func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 	sql := `
 		UPDATE

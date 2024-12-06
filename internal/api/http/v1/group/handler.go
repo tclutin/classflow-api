@@ -17,6 +17,7 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, dto group.CreateGroupDTO) (uint64, error)
+	Delete(ctx context.Context, groupID uint64) error
 	GetAllGroupsSummary(ctx context.Context, filter group.FilterDTO) ([]group.SummaryGroupDTO, error)
 	GetCurrentGroupByUserID(ctx context.Context, userID uint64) (group.DetailsGroupDTO, error)
 	JoinToGroup(ctx context.Context, userID, groupID uint64) error
@@ -37,6 +38,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	groupsGroup := router.Group("/groups")
 	{
 		groupsGroup.POST("", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.Create)
+		groupsGroup.DELETE("/:group_id", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.Delete)
 		groupsGroup.GET("", h.GetAllGroupsSummary)
 		groupsGroup.GET("/me", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Student, user.Leader), h.GetCurrentGroup)
 
@@ -103,6 +105,37 @@ func (h *Handler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"group_id": groupID,
 	})
+}
+
+// @Security		ApiKeyAuth
+// @Summary		Delete
+// @Description	Удалить группу
+// @Tags			groups
+// @Accept			json
+// @Produce		json
+// @Param			group_id	path		string	true	"Group ID"
+// @Success		200			{string}	string
+// @Failure		400			{object}	response.APIError
+// @Failure		404			{object}	response.APIError
+// @Failure		500			{object}	response.APIError
+// @Router			/groups/{group_id} [delete]
+func (h *Handler) Delete(c *gin.Context) {
+	groupID, err := strconv.ParseUint(c.Param("group_id"), 10, 64)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.NewAPIError(err.Error()))
+		return
+	}
+
+	if err = h.service.Delete(c.Request.Context(), groupID); err != nil {
+		if errors.Is(err, domainErr.ErrGroupNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
 // @Summary		GetAllGroupsSummary

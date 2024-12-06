@@ -41,7 +41,7 @@ func NewApp() *App {
 
 	services := domain.NewServices(jwtManager, repositories, cfg)
 
-	router := api.NewRouter(services)
+	router := api.NewRouter(services, cfg)
 
 	appServer := &http.Server{
 		Addr:    net.JoinHostPort(cfg.HTTPServer.Address, cfg.HTTPServer.Port),

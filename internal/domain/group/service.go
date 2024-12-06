@@ -38,6 +38,7 @@ type MemberRepository interface {
 type Repository interface {
 	Create(ctx context.Context, group Group) (uint64, error)
 	Update(ctx context.Context, group Group) error
+	Delete(ctx context.Context, groupID uint64) error
 	GetById(ctx context.Context, groupID uint64) (Group, error)
 	GetSummaryGroups(ctx context.Context, filter FilterDTO) ([]SummaryGroupDTO, error)
 	GetByShortName(ctx context.Context, shortname string) (Group, error)
@@ -105,6 +106,14 @@ func (s *Service) Create(ctx context.Context, dto CreateGroupDTO) (uint64, error
 	}
 
 	return groupID, nil
+}
+
+func (s *Service) Delete(ctx context.Context, groupID uint64) error {
+	_, err := s.GetById(ctx, groupID)
+	if err != nil {
+		return err
+	}
+	return s.repo.Delete(ctx, groupID)
 }
 
 func (s *Service) Update(ctx context.Context, group Group) error {

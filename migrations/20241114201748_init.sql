@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.groups (
     exists_schedule BOOLEAN NOT NULL DEFAULT FALSE,
     number_of_people INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
-    FOREIGN KEY (leader_id) REFERENCES public.users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (leader_id) REFERENCES public.users (user_id),
     FOREIGN KEY (faculty_id) REFERENCES public.faculties (faculty_id),
     FOREIGN KEY (program_id) REFERENCES public.programs (program_id)
 );
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.schedule (
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
-    FOREIGN KEY (group_id) REFERENCES public.groups (group_id),
+    FOREIGN KEY (group_id) REFERENCES public.groups (group_id) ON DELETE CASCADE,
     FOREIGN KEY (type_of_subject_id) REFERENCES public.type_of_subject(type_of_subject_id),
     FOREIGN KEY (buildings_id) REFERENCES public.buildings(buildings_id)
 );
