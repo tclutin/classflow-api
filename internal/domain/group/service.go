@@ -9,8 +9,13 @@ import (
 	domainErr "github.com/tclutin/classflow-api/internal/domain/errors"
 	"github.com/tclutin/classflow-api/internal/domain/schedule"
 	"github.com/tclutin/classflow-api/internal/domain/user"
+	"log/slog"
 	"time"
 )
+
+/*
+Нужно решить, что делать с транзакциями и убрать дублирование, думаю в будущем посмотрим, что можно сделать
+*/
 
 type UserService interface {
 	Update(ctx context.Context, user user.User) error
@@ -29,16 +34,29 @@ type EduService interface {
 	GetBuildingById(ctx context.Context, buildingID uint64) (edu.Building, error)
 }
 
+type UserRepository interface {
+	UpdateTx(ctx context.Context, tx pgx.Tx, user user.User) error
+}
+
+type ScheduleRepository interface {
+	CreateTx(ctx context.Context, tx pgx.Tx, schedule []schedule.Schedule) error
+	Create(ctx context.Context, schedule []schedule.Schedule) error
+}
+
 type MemberRepository interface {
 	Delete(ctx context.Context, userId uint64) error
 	Create(ctx context.Context, userID uint64, groupId uint64) (uint64, error)
+	DeleteTx(ctx context.Context, tx pgx.Tx, userId uint64) error
+	CreateTx(ctx context.Context, tx pgx.Tx, userID uint64, groupId uint64) (uint64, error)
 	GetGroupIdByUserId(ctx context.Context, userID uint64) (uint64, error)
 }
 
 type Repository interface {
 	Create(ctx context.Context, group Group) (uint64, error)
 	Update(ctx context.Context, group Group) error
-	Delete(ctx context.Context, groupID uint64) error
+	BeginTx(ctx context.Context) (pgx.Tx, error)
+	UpdateTx(ctx context.Context, tx pgx.Tx, group Group) error
+	DeleteTx(ctx context.Context, tx pgx.Tx, groupID uint64) error
 	GetById(ctx context.Context, groupID uint64) (Group, error)
 	GetSummaryGroups(ctx context.Context, filter FilterDTO) ([]SummaryGroupDTO, error)
 	GetByShortName(ctx context.Context, shortname string) (Group, error)
@@ -50,22 +68,28 @@ type Service struct {
 	userService     UserService
 	eduService      EduService
 	memberRepo      MemberRepository
+	scheduleRepo    ScheduleRepository
+	userRepo        UserRepository
 	repo            Repository
 }
 
 func NewService(
 	repository Repository,
 	memberRepo MemberRepository,
+	userRepo UserRepository,
 	scheduleService ScheduleService,
+	scheduleRepo ScheduleRepository,
 	userService UserService,
 	eduService EduService,
 ) *Service {
 
 	return &Service{
 		scheduleService: scheduleService,
+		scheduleRepo:    scheduleRepo,
 		userService:     userService,
 		repo:            repository,
 		memberRepo:      memberRepo,
+		userRepo:        userRepo,
 		eduService:      eduService,
 	}
 }
@@ -114,6 +138,21 @@ func (s *Service) Delete(ctx context.Context, groupID uint64) error {
 		return err
 	}
 
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			slog.Error("rolling back transaction due to error: %v", err)
+			tx.Rollback(ctx)
+		} else {
+			slog.Info("committing transaction")
+			tx.Commit(ctx)
+		}
+	}()
+
 	if group.LeaderID != nil {
 		usr, err := s.userService.GetById(ctx, *group.LeaderID)
 		if err != nil {
@@ -122,11 +161,16 @@ func (s *Service) Delete(ctx context.Context, groupID uint64) error {
 
 		usr.Role = user.Student
 
-		if err = s.userService.Update(ctx, usr); err != nil {
-			return err
+		if err = s.userRepo.UpdateTx(ctx, tx, usr); err != nil {
+			return fmt.Errorf("failed to update user:  %w", err)
 		}
 	}
-	return s.repo.Delete(ctx, groupID)
+
+	if err = s.repo.DeleteTx(ctx, tx, groupID); err != nil {
+		return fmt.Errorf("failed to delete group: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Service) Update(ctx context.Context, group Group) error {
@@ -195,7 +239,6 @@ func (s *Service) GetSchedulesByGroupId(ctx context.Context, filter schedule.Fil
 	return schedules, nil
 }
 
-// TODO: need tx manager on service layer
 func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedule, groupID uint64) error {
 	group, err := s.GetById(ctx, groupID)
 	if err != nil {
@@ -205,6 +248,21 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 	if group.ExistsSchedule {
 		return domainErr.ErrGroupAlreadyHasSchedule
 	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			slog.Error("rolling back transaction due to error", "error", err)
+			tx.Rollback(ctx)
+		} else {
+			slog.Info("committing transaction")
+			tx.Commit(ctx)
+		}
+	}()
 
 	for _, value := range schedule {
 		_, err = s.eduService.GetTypeOfSubjectById(ctx, value.TypeOfSubjectID)
@@ -218,20 +276,19 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 		}
 	}
 
-	if err = s.scheduleService.Create(ctx, schedule); err != nil {
-		return fmt.Errorf("cannot create new schedule: %w", err)
+	if err = s.scheduleRepo.CreateTx(ctx, tx, schedule); err != nil {
+		return fmt.Errorf("failed to create new schedule: %w", err)
 	}
 
 	group.ExistsSchedule = true
 
-	if err = s.Update(ctx, group); err != nil {
-		return fmt.Errorf("cannot update group: %w", err)
+	if err = s.repo.UpdateTx(ctx, tx, group); err != nil {
+		return fmt.Errorf("failed to update group: %w", err)
 	}
 
 	return nil
 }
 
-// JoinToGroup TODO: needs tx
 func (s *Service) JoinToGroup(ctx context.Context, userID, groupID uint64) error {
 	_, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
 	if err == nil {
@@ -243,18 +300,36 @@ func (s *Service) JoinToGroup(ctx context.Context, userID, groupID uint64) error
 		return err
 	}
 
-	_, err = s.memberRepo.Create(ctx, userID, groupID)
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			slog.Error("rolling back transaction due to error", "error", err)
+			tx.Rollback(ctx)
+		} else {
+			slog.Info("committing transaction")
+			tx.Commit(ctx)
+		}
+	}()
+
+	_, err = s.memberRepo.CreateTx(ctx, tx, userID, groupID)
 	if err != nil {
 		return fmt.Errorf("failed to create member: %w", err)
 	}
 
 	group.NumberOfPeople++
 
-	return s.repo.Update(ctx, group)
+	if err = s.repo.UpdateTx(ctx, tx, group); err != nil {
+		return fmt.Errorf("failed to update group: %w", err)
+	}
+
+	return nil
 
 }
 
-// LeaveFromGroup TODO: needs tx
 func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
 	groupID, err := s.memberRepo.GetGroupIdByUserId(ctx, userID)
 	if err != nil {
@@ -273,19 +348,38 @@ func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
 		return err
 	}
 
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			slog.Error("rolling back transaction due to error", "error", err)
+			tx.Rollback(ctx)
+		} else {
+			slog.Info("committing transaction")
+			tx.Commit(ctx)
+		}
+	}()
+
 	if group.LeaderID != nil && usr.UserID == *group.LeaderID {
 		usr.Role = user.Student
 		group.LeaderID = nil
-		if err = s.userService.Update(ctx, usr); err != nil {
-			return err
+		if err = s.userRepo.UpdateTx(ctx, tx, usr); err != nil {
+			return fmt.Errorf("failed to update user: %w", err)
 		}
 	}
 
-	if err = s.memberRepo.Delete(ctx, userID); err != nil {
-		return err
+	if err = s.memberRepo.DeleteTx(ctx, tx, userID); err != nil {
+		return fmt.Errorf("failed to delete member: %w", err)
 	}
 
 	group.NumberOfPeople = group.NumberOfPeople - 1
 
-	return s.repo.Update(ctx, group)
+	if err = s.repo.UpdateTx(ctx, tx, group); err != nil {
+		return fmt.Errorf("failed to update group: %w", err)
+	}
+
+	return nil
 }

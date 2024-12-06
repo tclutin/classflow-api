@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tclutin/classflow-api/internal/domain/group"
 	"strings"
@@ -42,14 +43,6 @@ func (g *GroupRepository) Create(ctx context.Context, group group.Group) (uint64
 	return groupId, nil
 }
 
-func (g *GroupRepository) Delete(ctx context.Context, groupID uint64) error {
-	sql := `DELETE FROM public.groups WHERE group_id = $1`
-
-	_, err := g.pool.Exec(ctx, sql, groupID)
-
-	return err
-}
-
 func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 	sql := `
 		UPDATE
@@ -77,6 +70,49 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 		group.ExistsSchedule,
 		group.CreatedAt,
 		group.GroupID)
+
+	return err
+}
+
+func (m *GroupRepository) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	return m.pool.Begin(ctx)
+}
+
+func (g *GroupRepository) UpdateTx(ctx context.Context, tx pgx.Tx, group group.Group) error {
+	sql := `
+		UPDATE
+			public.groups
+		SET
+			leader_id = $1,
+			faculty_id = $2,
+			program_id = $3,
+			short_name = $4,
+			number_of_people = $5,
+			exists_schedule = $6,
+			created_at = $7
+		WHERE
+		    group_id = $8
+		`
+
+	_, err := tx.Exec(
+		ctx,
+		sql,
+		group.LeaderID,
+		group.FacultyID,
+		group.ProgramID,
+		group.ShortName,
+		group.NumberOfPeople,
+		group.ExistsSchedule,
+		group.CreatedAt,
+		group.GroupID)
+
+	return err
+}
+
+func (g *GroupRepository) DeleteTx(ctx context.Context, tx pgx.Tx, groupID uint64) error {
+	sql := `DELETE FROM public.groups WHERE group_id = $1`
+
+	_, err := tx.Exec(ctx, sql, groupID)
 
 	return err
 }

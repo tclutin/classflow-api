@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tclutin/classflow-api/internal/domain/user"
 )
@@ -61,6 +62,39 @@ func (u *UserRepository) Update(ctx context.Context, user user.User) error {
 	`
 
 	_, err := u.pool.Exec(
+		ctx,
+		sql,
+		user.Email,
+		user.PasswordHash,
+		user.Role,
+		user.FullName,
+		user.TelegramChatID,
+		user.TelegramUsername,
+		user.NotificationDelay,
+		user.NotificationsEnabled,
+		user.UserID)
+
+	return err
+}
+
+func (u *UserRepository) UpdateTx(ctx context.Context, tx pgx.Tx, user user.User) error {
+	sql := `
+		UPDATE
+			public.users
+		SET
+		    email = $1,
+		    password_hash = $2,
+		    role = $3,
+		    fullname = $4,
+		    telegram_chat = $5,
+		    telegram_username = $6,
+		    notification_delay = $7,
+		    notifications_enabled = $8
+		WHERE
+		    user_id = $9
+	`
+
+	_, err := tx.Exec(
 		ctx,
 		sql,
 		user.Email,
