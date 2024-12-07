@@ -33,7 +33,7 @@ func NewHandler(service Service) *Handler {
 func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 	authGroup := router.Group("/auth")
 	{
-		authGroup.POST("/signup", h.SignUp)
+		authGroup.POST("/signup", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.SignUp)
 		authGroup.POST("/login", h.LogIn)
 		authGroup.POST("/telegram/login", h.LogInWithTelegram)
 		authGroup.POST("/telegram/signup", h.SignUpWithTelegram)
@@ -120,6 +120,7 @@ func (h *Handler) LogInWithTelegram(c *gin.Context) {
 	})
 }
 
+// @Security		ApiKeyAuth
 // @Summary		SignUp
 // @Description	Создание нового админ пользователя
 // @Tags			auth

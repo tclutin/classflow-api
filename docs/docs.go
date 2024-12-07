@@ -69,6 +69,11 @@ const docTemplate = `{
         },
         "/auth/signup": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Создание нового админ пользователя",
                 "consumes": [
                     "application/json"

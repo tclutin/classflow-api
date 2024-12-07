@@ -8,6 +8,7 @@ import (
 	"github.com/tclutin/classflow-api/internal/api"
 	"github.com/tclutin/classflow-api/internal/config"
 	"github.com/tclutin/classflow-api/internal/domain"
+	"github.com/tclutin/classflow-api/internal/migration"
 	"github.com/tclutin/classflow-api/internal/repository"
 	"github.com/tclutin/classflow-api/pkg/client/postgresql"
 	"github.com/tclutin/classflow-api/pkg/jwt"
@@ -41,6 +42,9 @@ func NewApp() *App {
 		cfg.Postgres.DbName)
 
 	postgres := postgresql.NewPool(context.Background(), dsn)
+
+	migrator := migration.New(postgres, appLogger)
+	migrator.Init(context.Background(), cfg.Admin.Email, cfg.Admin.Password)
 
 	repositories := repository.NewRepositories(postgres, appLogger)
 
