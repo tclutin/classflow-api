@@ -72,7 +72,7 @@ func (h *Handler) SignUpWithTelegram(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -110,7 +110,7 @@ func (h *Handler) LogInWithTelegram(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -151,7 +151,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -196,7 +196,7 @@ func (h *Handler) LogIn(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -230,7 +230,7 @@ func (h *Handler) Who(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 

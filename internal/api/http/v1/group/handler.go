@@ -98,7 +98,7 @@ func (h *Handler) Create(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -136,7 +136,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusNotFound, response.NewAPIError(err.Error()))
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -165,7 +165,7 @@ func (h *Handler) GetAllGroupsSummary(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -203,7 +203,7 @@ func (h *Handler) GetCurrentGroup(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -244,7 +244,7 @@ func (h *Handler) LeaveFromGroup(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -289,7 +289,7 @@ func (h *Handler) JoinToGroup(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -355,7 +355,7 @@ func (h *Handler) UploadSchedule(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -392,7 +392,7 @@ func (h *Handler) GetScheduleByGroupId(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 

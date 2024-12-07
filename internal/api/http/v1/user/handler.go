@@ -71,7 +71,7 @@ func (h *Handler) UpdateSettings(c *gin.Context) {
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 

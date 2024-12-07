@@ -48,7 +48,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 func (h *Handler) GetAllBuildings(c *gin.Context) {
 	buildings, err := h.service.GetAllBuildings(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -67,7 +67,7 @@ func (h *Handler) GetAllBuildings(c *gin.Context) {
 func (h *Handler) GetAllTypesOfSubject(c *gin.Context) {
 	types, err := h.service.GetAllTypesOfSubject(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -86,7 +86,7 @@ func (h *Handler) GetAllTypesOfSubject(c *gin.Context) {
 func (h *Handler) GetAllFaculties(c *gin.Context) {
 	faculties, err := h.service.GetAllFaculties(c.Request.Context())
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
@@ -115,7 +115,7 @@ func (h *Handler) GetProgramsByFacultyId(c *gin.Context) {
 
 	programs, err := h.service.GetAllProgramsByFacultyId(c.Request.Context(), parseUint)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.NewAPIError("An error occurred on the server. Please try again later."))
 		return
 	}
 
