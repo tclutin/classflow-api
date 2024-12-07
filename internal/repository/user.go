@@ -5,15 +5,18 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tclutin/classflow-api/internal/domain/user"
+	"log/slog"
 )
 
 type UserRepository struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
+func NewUserRepository(pool *pgxpool.Pool, logger *slog.Logger) *UserRepository {
 	return &UserRepository{
-		pool: pool,
+		pool:   pool,
+		logger: logger,
 	}
 }
 
@@ -38,6 +41,11 @@ func (u *UserRepository) Create(ctx context.Context, user user.User) (uint64, er
 	var userID uint64
 
 	if err := row.Scan(&userID); err != nil {
+		u.logger.Error("Failed to create user",
+			"error", err,
+			"email", user.Email,
+			"role", user.Role,
+		)
 		return 0, err
 	}
 
@@ -74,7 +82,15 @@ func (u *UserRepository) Update(ctx context.Context, user user.User) error {
 		user.NotificationsEnabled,
 		user.UserID)
 
-	return err
+	if err != nil {
+		u.logger.Error("Failed to update user",
+			"error", err,
+			"userID", user.UserID,
+		)
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserRepository) UpdateTx(ctx context.Context, tx pgx.Tx, user user.User) error {
@@ -107,7 +123,15 @@ func (u *UserRepository) UpdateTx(ctx context.Context, tx pgx.Tx, user user.User
 		user.NotificationsEnabled,
 		user.UserID)
 
-	return err
+	if err != nil {
+		u.logger.Error("Failed to update user",
+			"error", err,
+			"userID", user.UserID,
+		)
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserRepository) GetById(ctx context.Context, userID uint64) (user.User, error) {
@@ -130,6 +154,10 @@ func (u *UserRepository) GetById(ctx context.Context, userID uint64) (user.User,
 	)
 
 	if err != nil {
+		u.logger.Error("Failed to get user by ID",
+			"error", err,
+			"userID", userID,
+		)
 		return usr, err
 	}
 
@@ -156,6 +184,10 @@ func (u *UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 	)
 
 	if err != nil {
+		u.logger.Error("Failed to retrieve user by email",
+			"error", err,
+			"email", email,
+		)
 		return usr, err
 	}
 
@@ -181,6 +213,10 @@ func (u *UserRepository) GetByTelegramChatId(ctx context.Context, telegramChatID
 		&usr.CreatedAt)
 
 	if err != nil {
+		u.logger.Error("Failed to retrieve user by Telegram Chat ID",
+			"error", err,
+			"telegramChatID", telegramChatID,
+		)
 		return usr, err
 	}
 

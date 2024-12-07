@@ -19,6 +19,5 @@ import (
 //	@description				Use "Bearer <token>" to authenticate
 
 func main() {
-
 	app.NewApp().Run(context.Background())
 }
