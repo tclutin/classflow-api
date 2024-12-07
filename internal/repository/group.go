@@ -6,15 +6,20 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tclutin/classflow-api/internal/domain/group"
+	"log/slog"
 	"strings"
 )
 
 type GroupRepository struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewGroupRepository(pool *pgxpool.Pool) *GroupRepository {
-	return &GroupRepository{pool}
+func NewGroupRepository(pool *pgxpool.Pool, logger *slog.Logger) *GroupRepository {
+	return &GroupRepository{
+		pool:   pool,
+		logger: logger,
+	}
 }
 
 func (g *GroupRepository) Create(ctx context.Context, group group.Group) (uint64, error) {
@@ -37,6 +42,12 @@ func (g *GroupRepository) Create(ctx context.Context, group group.Group) (uint64
 	var groupId uint64
 
 	if err := row.Scan(&groupId); err != nil {
+		g.logger.Error("Failed to create group",
+			"error", err,
+			"faculty_id", group.FacultyID,
+			"program_id", group.ProgramID,
+			"short_name", group.ShortName,
+		)
 		return 0, err
 	}
 
@@ -71,7 +82,15 @@ func (g *GroupRepository) Update(ctx context.Context, group group.Group) error {
 		group.CreatedAt,
 		group.GroupID)
 
-	return err
+	if err != nil {
+		g.logger.Error("Failed to update group",
+			"error", err,
+			"group_id", group.GroupID,
+		)
+		return err
+	}
+
+	return nil
 }
 
 func (g *GroupRepository) BeginTx(ctx context.Context) (pgx.Tx, error) {
@@ -106,7 +125,15 @@ func (g *GroupRepository) UpdateTx(ctx context.Context, tx pgx.Tx, group group.G
 		group.CreatedAt,
 		group.GroupID)
 
-	return err
+	if err != nil {
+		g.logger.Error("Failed to update group",
+			"error", err,
+			"group_id", group.GroupID,
+		)
+		return err
+	}
+
+	return nil
 }
 
 func (g *GroupRepository) DeleteTx(ctx context.Context, tx pgx.Tx, groupID uint64) error {
@@ -114,7 +141,15 @@ func (g *GroupRepository) DeleteTx(ctx context.Context, tx pgx.Tx, groupID uint6
 
 	_, err := tx.Exec(ctx, sql, groupID)
 
-	return err
+	if err != nil {
+		g.logger.Error("Failed to delete group",
+			"error", err,
+			"group_id", groupID,
+		)
+		return err
+	}
+
+	return nil
 }
 
 // GetSummaryGroups TODO: needs sql builder/string builder
@@ -155,10 +190,12 @@ func (g *GroupRepository) GetSummaryGroups(ctx context.Context, filter group.Fil
 		sql += " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	fmt.Println(args, conditions)
-
 	rows, err := g.pool.Query(ctx, sql, args...)
 	if err != nil {
+		g.logger.Error("Failed to get summary groups",
+			"error", err,
+			"args", args,
+		)
 		return nil, err
 	}
 	defer rows.Close()
@@ -176,6 +213,9 @@ func (g *GroupRepository) GetSummaryGroups(ctx context.Context, filter group.Fil
 			&group.ExistsSchedule)
 
 		if err != nil {
+			g.logger.Error("Failed to scan row in GetSummaryGroups",
+				"error", err,
+			)
 			return nil, err
 		}
 
@@ -219,7 +259,12 @@ func (g *GroupRepository) GetDetailsGroupById(ctx context.Context, groupID uint6
 		&group.ExistsSchedule,
 		&group.CreatedAt)
 
+	// TODO: если нет такой записи, то сделать варн
 	if err != nil {
+		g.logger.Error("Failed to get detail group with group id",
+			"error", err,
+			"group_id", groupID,
+		)
 		return group, err
 	}
 
@@ -244,6 +289,10 @@ func (g *GroupRepository) GetByShortName(ctx context.Context, shortname string) 
 		&group.CreatedAt)
 
 	if err != nil {
+		g.logger.Error("Failed to get group by shortname",
+			"error", err,
+			"short_name", shortname,
+		)
 		return group, err
 	}
 
@@ -274,6 +323,10 @@ func (g *GroupRepository) GetById(ctx context.Context, groupID uint64) (group.Gr
 		&group.CreatedAt)
 
 	if err != nil {
+		g.logger.Error("Failed to get group by id",
+			"error", err,
+			"group_id", groupID,
+		)
 		return group, err
 	}
 

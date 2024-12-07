@@ -16,9 +16,9 @@ type Repositories struct {
 func NewRepositories(pool *pgxpool.Pool, logger *slog.Logger) *Repositories {
 	return &Repositories{
 		User:     NewUserRepository(pool, logger),
-		Group:    NewGroupRepository(pool),
+		Group:    NewGroupRepository(pool, logger),
 		Edu:      NewEduRepository(pool, logger),
-		Member:   NewMemberRepository(pool),
+		Member:   NewMemberRepository(pool, logger),
 		Schedule: NewScheduleRepository(pool, logger),
 	}
 }

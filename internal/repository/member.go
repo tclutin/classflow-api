@@ -4,14 +4,19 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"log/slog"
 )
 
 type MemberRepository struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewMemberRepository(pool *pgxpool.Pool) *MemberRepository {
-	return &MemberRepository{pool}
+func NewMemberRepository(pool *pgxpool.Pool, logger *slog.Logger) *MemberRepository {
+	return &MemberRepository{
+		pool:   pool,
+		logger: logger,
+	}
 }
 
 func (m *MemberRepository) CreateTx(ctx context.Context, tx pgx.Tx, userID uint64, groupId uint64) (uint64, error) {
@@ -22,6 +27,11 @@ func (m *MemberRepository) CreateTx(ctx context.Context, tx pgx.Tx, userID uint6
 	var memberID uint64
 
 	if err := row.Scan(&memberID); err != nil {
+		m.logger.Error("Failed to create member",
+			"error", err,
+			"userID", userID,
+			"groupId", groupId,
+		)
 		return 0, err
 	}
 
@@ -33,7 +43,15 @@ func (m *MemberRepository) DeleteTx(ctx context.Context, tx pgx.Tx, userId uint6
 
 	_, err := tx.Exec(ctx, sql, userId)
 
-	return err
+	if err != nil {
+		m.logger.Error("Failed to delete member",
+			"error", err,
+			"user_id", userId,
+		)
+		return err
+	}
+
+	return nil
 }
 
 func (m *MemberRepository) GetGroupIdByUserId(ctx context.Context, userID uint64) (uint64, error) {
@@ -43,6 +61,10 @@ func (m *MemberRepository) GetGroupIdByUserId(ctx context.Context, userID uint64
 
 	var memberID uint64
 	if err := row.Scan(&memberID); err != nil {
+		m.logger.Error("Failed to get group ID for user",
+			"error", err,
+			"userID", userID,
+		)
 		return 0, err
 	}
 
