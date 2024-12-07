@@ -17,7 +17,7 @@ func NewRepositories(pool *pgxpool.Pool, logger *slog.Logger) *Repositories {
 	return &Repositories{
 		User:     NewUserRepository(pool, logger),
 		Group:    NewGroupRepository(pool),
-		Edu:      NewEduRepository(pool),
+		Edu:      NewEduRepository(pool, logger),
 		Member:   NewMemberRepository(pool),
 		Schedule: NewScheduleRepository(pool),
 	}
