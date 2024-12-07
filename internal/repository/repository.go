@@ -19,6 +19,6 @@ func NewRepositories(pool *pgxpool.Pool, logger *slog.Logger) *Repositories {
 		Group:    NewGroupRepository(pool),
 		Edu:      NewEduRepository(pool, logger),
 		Member:   NewMemberRepository(pool),
-		Schedule: NewScheduleRepository(pool),
+		Schedule: NewScheduleRepository(pool, logger),
 	}
 }

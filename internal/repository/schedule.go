@@ -5,14 +5,19 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tclutin/classflow-api/internal/domain/schedule"
+	"log/slog"
 )
 
 type ScheduleRepository struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewScheduleRepository(pool *pgxpool.Pool) *ScheduleRepository {
-	return &ScheduleRepository{pool}
+func NewScheduleRepository(pool *pgxpool.Pool, logger *slog.Logger) *ScheduleRepository {
+	return &ScheduleRepository{
+		pool:   pool,
+		logger: logger,
+	}
 }
 
 func (s *ScheduleRepository) CreateTx(ctx context.Context, tx pgx.Tx, schedule []schedule.Schedule) error {
@@ -39,6 +44,11 @@ func (s *ScheduleRepository) CreateTx(ctx context.Context, tx pgx.Tx, schedule [
 			value.CreatedAt)
 
 		if err != nil {
+			s.logger.Error("Failed to insert schedule",
+				"error", err,
+				"group_id", value.GroupID,
+				"subject_name", value.SubjectName,
+			)
 			return err
 		}
 
@@ -83,6 +93,10 @@ func (s *ScheduleRepository) GetSchedulesByGroupId(ctx context.Context, filter s
 
 	rows, err := s.pool.Query(ctx, sql, groupID)
 	if err != nil {
+		s.logger.Error("Failed to execute query",
+			"error", err,
+			"group_id", groupID,
+		)
 		return nil, err
 	}
 	defer rows.Close()
@@ -107,6 +121,10 @@ func (s *ScheduleRepository) GetSchedulesByGroupId(ctx context.Context, filter s
 			&schedule.Building.Address)
 
 		if err != nil {
+			s.logger.Error("Failed to scan schedule row",
+				"error", err,
+				"group_id", groupID,
+			)
 			return nil, err
 		}
 
