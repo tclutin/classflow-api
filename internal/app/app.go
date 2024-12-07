@@ -46,7 +46,7 @@ func NewApp() *App {
 
 	jwtManager := jwt.MustLoadTokenManager(cfg.JWT.Secret)
 
-	services := domain.NewServices(jwtManager, repositories, cfg)
+	services := domain.NewServices(appLogger, jwtManager, repositories, cfg)
 
 	router := api.NewRouter(services, cfg)
 

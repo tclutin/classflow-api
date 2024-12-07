@@ -59,6 +59,7 @@ type Repository interface {
 }
 
 type Service struct {
+	logger          *slog.Logger
 	scheduleService ScheduleService
 	userService     UserService
 	eduService      EduService
@@ -69,6 +70,7 @@ type Service struct {
 }
 
 func NewService(
+	logger *slog.Logger,
 	repository Repository,
 	memberRepo MemberRepository,
 	userRepo UserRepository,
@@ -79,6 +81,7 @@ func NewService(
 ) *Service {
 
 	return &Service{
+		logger:          logger,
 		scheduleService: scheduleService,
 		scheduleRepo:    scheduleRepo,
 		userService:     userService,
@@ -140,10 +143,12 @@ func (s *Service) Delete(ctx context.Context, groupID uint64) error {
 
 	defer func() {
 		if err != nil {
-			slog.Error("rolling back transaction due to error: %v", err)
+			s.logger.Error("Rolling back transaction due to error",
+				"error", err,
+			)
 			tx.Rollback(ctx)
 		} else {
-			slog.Info("committing transaction")
+			s.logger.Info("Committing transaction")
 			tx.Commit(ctx)
 		}
 	}()
@@ -251,10 +256,12 @@ func (s *Service) UploadSchedule(ctx context.Context, schedule []schedule.Schedu
 
 	defer func() {
 		if err != nil {
-			slog.Error("rolling back transaction due to error", "error", err)
+			s.logger.Error("Rolling back transaction due to error",
+				"error", err,
+			)
 			tx.Rollback(ctx)
 		} else {
-			slog.Info("committing transaction")
+			s.logger.Info("Committing transaction")
 			tx.Commit(ctx)
 		}
 	}()
@@ -307,10 +314,12 @@ func (s *Service) JoinToGroup(ctx context.Context, userID, groupID uint64) error
 
 	defer func() {
 		if err != nil {
-			slog.Error("rolling back transaction due to error", "error", err)
+			s.logger.Error("Rolling back transaction due to error",
+				"error", err,
+			)
 			tx.Rollback(ctx)
 		} else {
-			slog.Info("committing transaction")
+			s.logger.Info("Committing transaction")
 			tx.Commit(ctx)
 		}
 	}()
@@ -355,10 +364,12 @@ func (s *Service) LeaveFromGroup(ctx context.Context, userID uint64) error {
 
 	defer func() {
 		if err != nil {
-			slog.Error("rolling back transaction due to error", "error", err)
+			s.logger.Error("Rolling back transaction due to error",
+				"error", err,
+			)
 			tx.Rollback(ctx)
 		} else {
-			slog.Info("committing transaction")
+			s.logger.Info("Committing transaction")
 			tx.Commit(ctx)
 		}
 	}()
