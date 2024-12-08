@@ -2,33 +2,33 @@ package repository
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tclutin/classflow-api/internal/domain/schedule"
+	"log/slog"
 )
 
 type ScheduleRepository struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewScheduleRepository(pool *pgxpool.Pool) *ScheduleRepository {
-	return &ScheduleRepository{pool}
+func NewScheduleRepository(pool *pgxpool.Pool, logger *slog.Logger) *ScheduleRepository {
+	return &ScheduleRepository{
+		pool:   pool,
+		logger: logger,
+	}
 }
 
-func (s *ScheduleRepository) Create(ctx context.Context, schedule []schedule.Schedule) error {
+func (s *ScheduleRepository) CreateTx(ctx context.Context, tx pgx.Tx, schedule []schedule.Schedule) error {
 	sql := `
 		INSERT INTO public.schedule
 		(group_id, buildings_id, type_of_subject_id, subject_name, teacher, room, is_even, day_of_week, start_time, end_time, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		`
 
-	tx, err := s.pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-
 	for _, value := range schedule {
-		_, err = tx.Exec(
+		_, err := tx.Exec(
 			ctx,
 			sql,
 			value.GroupID,
@@ -44,19 +44,20 @@ func (s *ScheduleRepository) Create(ctx context.Context, schedule []schedule.Sch
 			value.CreatedAt)
 
 		if err != nil {
+			s.logger.Error("Failed to insert schedule",
+				"error", err,
+				"group_id", value.GroupID,
+				"subject_name", value.SubjectName,
+			)
 			return err
 		}
 
 	}
 
-	if err = tx.Commit(ctx); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (s *ScheduleRepository) GetAllSchedulesByGroupId(ctx context.Context, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
+func (s *ScheduleRepository) GetSchedulesByGroupId(ctx context.Context, filter schedule.FilterDTO, groupID uint64) ([]schedule.DetailsScheduleDTO, error) {
 	sql := `
 		SELECT
 			t.name,
@@ -82,8 +83,20 @@ func (s *ScheduleRepository) GetAllSchedulesByGroupId(ctx context.Context, group
 			group_id = $1
 		`
 
+	if filter.IsEven == "true" {
+		sql += " AND s.is_even = true"
+	}
+
+	if filter.IsEven == "false" {
+		sql += " AND s.is_even = false"
+	}
+
 	rows, err := s.pool.Query(ctx, sql, groupID)
 	if err != nil {
+		s.logger.Error("Failed to execute query",
+			"error", err,
+			"group_id", groupID,
+		)
 		return nil, err
 	}
 	defer rows.Close()
@@ -108,6 +121,10 @@ func (s *ScheduleRepository) GetAllSchedulesByGroupId(ctx context.Context, group
 			&schedule.Building.Address)
 
 		if err != nil {
+			s.logger.Error("Failed to scan schedule row",
+				"error", err,
+				"group_id", groupID,
+			)
 			return nil, err
 		}
 

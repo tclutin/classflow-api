@@ -29,32 +29,34 @@ CREATE TABLE IF NOT EXISTS public.buildings (
 
 CREATE TABLE IF NOT EXISTS public.users (
     user_id BIGSERIAL PRIMARY KEY,
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('student', 'teacher', 'leader')),
+    email TEXT UNIQUE,
+    password_hash TEXT,
+    role TEXT NOT NULL CHECK (role IN ('student', 'leader', 'admin')),
     fullname TEXT,
-    telegram TEXT,
+    telegram_username TEXT,
+    telegram_chat BIGINT,
+    notification_delay BIGINT,
+    notifications_enabled BOOLEAN,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp
 );
 
 CREATE TABLE IF NOT EXISTS public.groups (
     group_id BIGSERIAL PRIMARY KEY,
-    leader_id BIGINT NOT NULL,
+    leader_id BIGINT,
     faculty_id BIGINT NOT NULL,
     program_id BIGINT NOT NULL,
-    code TEXT NOT NULL UNIQUE,
     short_name TEXT NOT NULL UNIQUE,
     exists_schedule BOOLEAN NOT NULL DEFAULT FALSE,
-    number_of_people INT NOT NULL DEFAULT 1,
+    number_of_people INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
-    FOREIGN KEY (leader_id) REFERENCES public.users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (leader_id) REFERENCES public.users (user_id),
     FOREIGN KEY (faculty_id) REFERENCES public.faculties (faculty_id),
     FOREIGN KEY (program_id) REFERENCES public.programs (program_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.members (
     member_id BIGSERIAL PRIMARY KEY,
-    user_id   BIGINT NOT NULL,
+    user_id   BIGINT NOT NULL UNIQUE,
     group_id  BIGINT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES public.users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (group_id) REFERENCES public.groups (group_id) ON DELETE CASCADE
@@ -73,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.schedule (
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
-    FOREIGN KEY (group_id) REFERENCES public.groups (group_id),
+    FOREIGN KEY (group_id) REFERENCES public.groups (group_id) ON DELETE CASCADE,
     FOREIGN KEY (type_of_subject_id) REFERENCES public.type_of_subject(type_of_subject_id),
     FOREIGN KEY (buildings_id) REFERENCES public.buildings(buildings_id)
 );
@@ -83,7 +85,7 @@ INSERT INTO public.faculties (faculty_name) VALUES ('Математически�
 INSERT INTO public.faculties (faculty_name) VALUES ('Другое');
 
 INSERT INTO public.programs (faculty_id, program_name) VALUES (1, 'Программная инженерия');
-INSERT INTO public.programs (faculty_id, program_name) VALUES (1, 'Прикдадная информатика');
+INSERT INTO public.programs (faculty_id, program_name) VALUES (1, 'Прикладная информатика');
 INSERT INTO public.programs (faculty_id, program_name) VALUES (2, 'Прикладная математика');
 INSERT INTO public.programs (faculty_id, program_name) VALUES (3, 'Другое');
 

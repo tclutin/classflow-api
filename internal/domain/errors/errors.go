@@ -34,19 +34,10 @@ var (
 	ErrFacultyProgramIdMismatch = errors.New("faculty and program id does not match")
 
 	// ErrAlreadyInGroup GroupService
-	ErrAlreadyInGroup = errors.New("you are already in a group and cannot join another")
-
-	// ErrWrongGroupCode GroupService
-	ErrWrongGroupCode = errors.New("wrong group code")
+	ErrAlreadyInGroup = errors.New("you are already in a group")
 
 	// ErrGroupAlreadyHasSchedule GroupService
 	ErrGroupAlreadyHasSchedule = errors.New("group already has schedule")
-
-	//ErrThisGroupDoesNotBelongToYou GroupService
-	ErrThisGroupDoesNotBelongToYou = errors.New("this group does not belong to you")
-
-	//ErrYouArentMember GroupService
-	ErrYouArentMember = errors.New("you are not a member of this group")
 
 	//ErrMemberNotFound GroupService
 	ErrMemberNotFound = errors.New("member not found")

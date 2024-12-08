@@ -9,6 +9,7 @@ import (
 	"github.com/tclutin/classflow-api/internal/domain/user"
 	"github.com/tclutin/classflow-api/internal/repository"
 	"github.com/tclutin/classflow-api/pkg/jwt"
+	"log/slog"
 )
 
 type Services struct {
@@ -20,6 +21,7 @@ type Services struct {
 }
 
 func NewServices(
+	logger *slog.Logger,
 	tokenManager jwt.Manager,
 	repositories *repository.Repositories,
 	cfg *config.Config,
@@ -29,7 +31,14 @@ func NewServices(
 	authService := auth.NewService(userService, tokenManager, cfg)
 	scheduleService := schedule.NewService(repositories.Schedule)
 	eduService := edu.NewService(repositories.Edu)
-	groupService := group.NewService(repositories.Group, repositories.Member, scheduleService, userService, eduService)
+	groupService := group.NewService(logger,
+		repositories.Group,
+		repositories.Member,
+		repositories.User,
+		scheduleService,
+		repositories.Schedule,
+		userService,
+		eduService)
 
 	return &Services{
 		User:     userService,

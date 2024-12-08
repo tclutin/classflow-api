@@ -6,18 +6,18 @@ import (
 	"golang.org/x/net/context"
 )
 
-//	@title			Support API
-//	@version		5.0
-//	@description	This is a sample server celler server.
+//	@title			ClassFlow API
+//	@version		1.0
+//	@description	AntonioKrasava
 
-//	@host						localhost:8080
-//	@BasePath					/api/v1
+//	@host		localhost:8080
+//	@BasePath	/api/v1
+
 //	@securityDefinitions.apikey	ApiKeyAuth
 //	@in							header
 //	@name						Authorization
-//	@description				Description for what is this security definition being used
+//	@description				Use "Bearer <token>" to authenticate
 
 func main() {
-
 	app.NewApp().Run(context.Background())
 }
