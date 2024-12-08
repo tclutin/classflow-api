@@ -8,12 +8,19 @@ type TokenDTO struct {
 type SignUpDTO struct {
 	Email    string
 	Password string
-	Role     string
-	FullName *string
-	Telegram *string
 }
 
 type LogInDTO struct {
 	Email    string
 	Password string
+}
+
+type SignUpWithTelegramDTO struct {
+	TelegramChatID   int64
+	TelegramUsername string
+	Fullname         string
+}
+
+type LogInWithTelegramDTO struct {
+	TelegramChatID int64
 }

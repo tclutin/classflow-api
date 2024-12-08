@@ -8,13 +8,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ./data:/var/lib/postgresql/data
+      - ./logs:/logs
     ports:
       - "5432:5432"
 
-  app:
-    restart: always
-    build: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
+

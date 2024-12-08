@@ -18,6 +18,12 @@ var (
 	// ErrFacultyNotFound EduService
 	ErrFacultyNotFound = errors.New("faculty not found")
 
+	// ErrTypeOfSubjectNotFound EduService
+	ErrTypeOfSubjectNotFound = errors.New("type of subject not found")
+
+	// ErrBuildingNotFound EduService
+	ErrBuildingNotFound = errors.New("building not found")
+
 	// ErrGroupNotFound GroupService
 	ErrGroupNotFound = errors.New("group not found")
 
@@ -28,8 +34,11 @@ var (
 	ErrFacultyProgramIdMismatch = errors.New("faculty and program id does not match")
 
 	// ErrAlreadyInGroup GroupService
-	ErrAlreadyInGroup = errors.New("you are already in a group and cannot join another")
+	ErrAlreadyInGroup = errors.New("you are already in a group")
 
-	// ErrWrongGroupCode GroupService
-	ErrWrongGroupCode = errors.New("wrong group code")
+	// ErrGroupAlreadyHasSchedule GroupService
+	ErrGroupAlreadyHasSchedule = errors.New("group already has schedule")
+
+	//ErrMemberNotFound GroupService
+	ErrMemberNotFound = errors.New("member not found")
 )

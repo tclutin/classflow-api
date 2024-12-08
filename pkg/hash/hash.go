@@ -1,7 +1,6 @@
 package hash
 
 import (
-	"fmt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,7 +16,6 @@ func NewBcryptHash(text string) (string, error) {
 func CompareBcryptHash(hash string, plain string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(plain))
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 
