@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	dev  string = "local"
+	dev  string = "dev"
 	prod string = "prod"
 )
 
