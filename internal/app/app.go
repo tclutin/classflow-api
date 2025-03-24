@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/tclutin/classflow-api/internal/api"
 	"github.com/tclutin/classflow-api/internal/config"
 	"github.com/tclutin/classflow-api/internal/domain"
-	"github.com/tclutin/classflow-api/internal/migration"
+	"github.com/tclutin/classflow-api/internal/migrator"
 	"github.com/tclutin/classflow-api/internal/repository"
 	"github.com/tclutin/classflow-api/pkg/client/postgresql"
 	"github.com/tclutin/classflow-api/pkg/jwt"
@@ -43,8 +44,8 @@ func NewApp() *App {
 
 	postgres := postgresql.NewPool(context.Background(), dsn)
 
-	migrator := migration.New(postgres, appLogger)
-	migrator.Init(context.Background(), cfg.Admin.Email, cfg.Admin.Password)
+	migr := migrator.New(postgres, appLogger)
+	migr.Init(context.Background(), cfg.Admin.Email, cfg.Admin.Password)
 
 	repositories := repository.NewRepositories(postgres, appLogger)
 
@@ -71,6 +72,23 @@ func (app *App) Run(ctx context.Context) {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+
+		httpServer := &http.Server{
+			Addr:    "app:2112",
+			Handler: mux,
+		}
+
+		app.logger.Info("Prometheus server is starting...")
+		err := httpServer.ListenAndServe()
+		if err != nil && errors.Is(err, http.ErrServerClosed) {
+			app.logger.Error("Server stopped with error", "error", err)
+			os.Exit(1)
+		}
+	}()
 
 	go func() {
 		app.logger.Info("Server is starting...")

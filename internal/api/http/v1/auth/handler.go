@@ -36,7 +36,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 		authGroup.POST("/signup", middleware.JWTMiddleware(authService), middleware.RoleMiddleware(user.Admin), h.SignUp)
 		authGroup.POST("/login", h.LogIn)
 		authGroup.POST("/telegram/login", h.LogInWithTelegram)
-		authGroup.POST("/telegram/signup", h.SignUpWithTelegram)
+		authGroup.POST("/telegram/signup", middleware.CounterRequestMiddleware(), h.SignUpWithTelegram)
 		authGroup.GET("/who", middleware.JWTMiddleware(authService), h.Who)
 	}
 }

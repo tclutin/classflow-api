@@ -46,7 +46,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 		groupsGroup.POST("/leave", middleware.RoleMiddleware(user.Student, user.Leader), h.LeaveFromGroup)
 
 		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware(user.Admin), h.UploadSchedule)
-		groupsGroup.GET("/:group_id/schedule", h.GetScheduleByGroupId)
+		groupsGroup.GET("/:group_id/schedule", middleware.CounterRequestMiddleware(), h.GetScheduleByGroupId)
 	}
 }
 

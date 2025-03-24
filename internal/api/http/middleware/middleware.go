@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tclutin/classflow-api/internal/domain/auth"
+	"github.com/tclutin/classflow-api/internal/metric"
 	"github.com/tclutin/classflow-api/pkg/response"
 	"net/http"
 	"strings"
@@ -56,5 +57,12 @@ func RoleMiddleware(roles ...string) gin.HandlerFunc {
 		}
 
 		c.AbortWithStatusJSON(http.StatusForbidden, response.NewAPIError("you do not have permission to access this resource"))
+	}
+}
+
+func CounterRequestMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		metric.IncRequestCounter(c.FullPath())
 	}
 }

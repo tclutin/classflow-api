@@ -1,20 +1,47 @@
 services:
   db:
-    restart: always
     image: postgres:17.0-alpine3.20
+    restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - ./data:/var/lib/postgresql/data
-      - ./logs:/logs
+      - ./docker/pg-data:/var/lib/postgresql/data
+      - ./docker/logs:/logs
     ports:
       - "5432:5432"
+
   app:
-    restart: always
     build: .
+    restart: always
+    volumes:
+      - ./docker/logs:/logs
     ports:
+      - "2112:2112"
       - "8080:8080"
     depends_on:
       - db
+
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    volumes:
+      - ./docker/grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+
