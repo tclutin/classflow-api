@@ -3,9 +3,11 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tclutin/classflow-api/internal/domain/auth"
+	"github.com/tclutin/classflow-api/internal/domain/group"
 	"github.com/tclutin/classflow-api/internal/metric"
 	"github.com/tclutin/classflow-api/pkg/response"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -64,5 +66,27 @@ func CounterRequestMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 		metric.IncRequestCounter(c.FullPath())
+	}
+}
+
+func ScheduleRequestCounterMiddleware(groupService *group.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		groupId := c.Param("group_id")
+
+		id, err := strconv.ParseUint(groupId, 10, 64)
+		if err != nil {
+			c.Next()
+			return
+		}
+
+		group, err := groupService.GetById(c.Request.Context(), id)
+		if err != nil {
+			c.Next()
+			return
+		}
+
+		c.Next()
+
+		metric.IncScheduleRequestCounter(c.FullPath(), group.ShortName)
 	}
 }
