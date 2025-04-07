@@ -34,7 +34,7 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
+func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service, groupService *group.Service) {
 	groupsGroup := router.Group("/groups", middleware.JWTMiddleware(authService))
 	{
 		groupsGroup.POST("", middleware.RoleMiddleware(user.Admin), h.Create)
@@ -46,7 +46,7 @@ func (h *Handler) Bind(router *gin.RouterGroup, authService *auth.Service) {
 		groupsGroup.POST("/leave", middleware.RoleMiddleware(user.Student, user.Leader), h.LeaveFromGroup)
 
 		groupsGroup.POST("/:group_id/schedule", middleware.RoleMiddleware(user.Admin), h.UploadSchedule)
-		groupsGroup.GET("/:group_id/schedule", middleware.CounterRequestMiddleware(), h.GetScheduleByGroupId)
+		groupsGroup.GET("/:group_id/schedule", middleware.CounterRequestMiddleware(), middleware.ScheduleRequestCounterMiddleware(groupService), h.GetScheduleByGroupId)
 	}
 }
 
