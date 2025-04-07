@@ -24,7 +24,7 @@ func (h *Handler) InitAPI(router *gin.RouterGroup) {
 	{
 		user.NewHandler(h.services.User).Bind(apiGroup, h.services.Auth)
 		auth.NewHandler(h.services.Auth).Bind(apiGroup, h.services.Auth)
-		group.NewHandler(h.services.Group).Bind(apiGroup, h.services.Auth)
+		group.NewHandler(h.services.Group).Bind(apiGroup, h.services.Auth, h.services.Group)
 		edu.NewHandler(h.services.Edu).Bind(apiGroup, h.services.Auth)
 	}
 }
