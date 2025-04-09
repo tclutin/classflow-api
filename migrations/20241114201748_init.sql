@@ -1,7 +1,5 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
--- +goose StatementEnd
 CREATE TABLE IF NOT EXISTS public.faculties (
     faculty_id BIGSERIAL PRIMARY KEY,
     faculty_name TEXT NOT NULL UNIQUE
@@ -98,11 +96,10 @@ INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('1 к�
 INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('2 корпус', 55.180179, 61.328064, 'ул. Молодогвардейцев, 70Б, Челябинск');
 INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('3 корпус', 55.187305, 61.403047, 'ул. Проспект Победы, 162В, Челябинск');
 INSERT INTO public.buildings (name, latitude, longitude, address) VALUES ('4 корпус', 55.180200, 61.335155, 'ул. Молодогвардейцев, 57А, Челябинск');
+-- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
--- +goose StatementEnd
 DROP TABLE IF EXISTS public.schedule;
 DROP TABLE IF EXISTS public.members;
 DROP TABLE IF EXISTS public.groups;
@@ -111,3 +108,4 @@ DROP TABLE IF EXISTS public.programs;
 DROP TABLE IF EXISTS public.type_of_subject;
 DROP TABLE IF EXISTS public.buildings;
 DROP TABLE IF EXISTS public.faculties;
+-- +goose StatementEnd
